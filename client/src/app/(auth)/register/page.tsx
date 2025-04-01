@@ -21,6 +21,9 @@ export default function RegisterPage() {
   const handleRegister = async () => {
     
     setIsLoading(true);
+    console.log("UserName ",userName);
+    console.log("email ",email);
+    console.log("password ",password);
     try {
       const response = await axios.post("http://localhost:3005/auth/register", {
         userName,
@@ -33,7 +36,7 @@ export default function RegisterPage() {
 
     } catch (error) {
       alert("Error in Registering");
-      console.log(error);
+      console.log("Error ",error);
     }
 
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import axios from "axios"
 
@@ -24,9 +24,10 @@ export default function LoginPage() {
             password
           })
           alert("user Successfully LoggedIn");
-          console.log(response.data);
+          console.log(response.data.isLogin);
           router.push("/");
-    
+          localStorage.setItem("isLogin",response.data.isLogin);
+          localStorage.setItem("userId",response.data.userId);
         } catch (error) {
           alert("Error in Registering");
           console.log(error);

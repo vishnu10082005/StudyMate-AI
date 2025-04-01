@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
-import { User } from "lucide-react";
+import { Menu, User2, X } from "lucide-react";
+import { CircleUser } from "lucide-react";
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [hasMounted, setHasMounted] = useState(false); 
 
   useEffect(() => {
-    setHasMounted(true); // Mark that component has mounted
+    setHasMounted(true); 
     const loginStatus = localStorage.getItem("isLogin") === "true";
     setIsLoggedIn(loginStatus);
   }, []);
@@ -37,7 +37,7 @@ export default function Navbar() {
           {hasMounted && (
             isLoggedIn ? (
               <button>
-                <User></User>
+                <CircleUser></CircleUser>
               </button>
             ) : (
               <Link

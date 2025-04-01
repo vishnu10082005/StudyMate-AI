@@ -49,76 +49,59 @@ body {
 }
 
 :root {
-  --sidebar-background: 0 0% 98%;
-  --sidebar-foreground: 240 5.3% 26.1%;
-  --sidebar-primary: 240 5.9% 10%;
-  --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 240 4.8% 95.9%;
-  --sidebar-accent-foreground: 240 5.9% 10%;
-  --sidebar-border: 220 13% 91%;
-  --sidebar-ring: 217.2 91.2% 59.8%;
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-
+  --background: rgb(255, 255, 255);
+  --foreground: rgb(37, 37, 37);
+  --card: rgb(255, 255, 255);
+  --card-foreground: rgb(37, 37, 37);
+  --popover: rgb(255, 255, 255);
+  --popover-foreground: rgb(37, 37, 37);
+  --primary: rgb(50, 50, 50);
+  --primary-foreground: rgb(250, 250, 250);
+  --secondary: rgb(247, 247, 247);
+  --secondary-foreground: rgb(50, 50, 50);
+  --muted: rgb(247, 247, 247);
+  --muted-foreground: rgb(100, 100, 100);
+  --accent: rgb(247, 247, 247);
+  --accent-foreground: rgb(50, 50, 50);
+  --destructive: rgb(180, 50, 50);
+  --border: rgb(235, 235, 235);
+  --input: rgb(235, 235, 235);
+  --ring: rgb(180, 180, 180);
+  --chart-1: rgb(230, 145, 40);
+  --chart-2: rgb(60, 120, 200);
+  --chart-3: rgb(100, 60, 200);
+  --chart-4: rgb(200, 220, 60);
+  --chart-5: rgb(180, 170, 50);
+  --sidebar: rgb(250, 250, 250);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-background: 240 5.9% 10%;
-  --sidebar-foreground: 240 4.8% 95.9%;
-  --sidebar-primary: 224.3 76.3% 48%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 240 3.7% 15.9%;
-  --sidebar-accent-foreground: 240 4.8% 95.9%;
-  --sidebar-border: 240 3.7% 15.9%;
-  --sidebar-ring: 217.2 91.2% 59.8%;
+  --background: rgb(37, 37, 37);
+  --foreground: rgb(250, 250, 250);
+  --card: rgb(50, 50, 50);
+  --card-foreground: rgb(250, 250, 250);
+  --popover: rgb(50, 50, 50);
+  --popover-foreground: rgb(250, 250, 250);
+  --primary: rgb(235, 235, 235);
+  --primary-foreground: rgb(50, 50, 50);
+  --secondary: rgb(70, 70, 70);
+  --secondary-foreground: rgb(250, 250, 250);
+  --muted: rgb(70, 70, 70);
+  --muted-foreground: rgb(180, 180, 180);
+  --accent: rgb(70, 70, 70);
+  --accent-foreground: rgb(250, 250, 250);
+  --destructive: rgb(200, 50, 50);
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: rgb(100, 100, 100);
+  --chart-1: rgb(120, 100, 250);
+  --chart-2: rgb(80, 180, 120);
+  --chart-3: rgb(180, 170, 50);
+  --chart-4: rgb(140, 90, 220);
+  --chart-5: rgb(160, 100, 40);
+  --sidebar: rgb(50, 50, 50);
 }
+
 
 @layer base {
   * {
