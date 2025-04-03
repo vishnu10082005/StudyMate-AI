@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Menu, Send, Plus, MessageSquare, Image as ImageIcon } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Menu, Send, Plus, MessageSquare, Image as ImageIcon, SidebarOpenIcon, SidebarCloseIcon, DownloadIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabaseClient";
 import axios from "axios";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import Image from "next/image";
 
 type Message = {
   role: "user" | "bot";
@@ -26,34 +29,32 @@ export default function ChatPage() {
   const [activeChat, setActiveChat] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
   const [userId, setUserId] = useState<string | null>("");
   const [currentTitle, setCurrentTitle] = useState<string | null>("");
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-
-  var setCurrentChatToLocalStorage = (title: string) => {
+  const setCurrentChatToLocalStorage = (title: string) => {
     setCurrentTitle(title);
-  }
-  console.log("Current Title ", currentTitle);
+  };
+
+  const fetchChats = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const response = await axios.get(`http://localhost:3005/${userId}/getChats`);
+      setChats(response.data);
+    } catch (error) {
+      console.error("Error fetching chats:", error);
+    }
+  }, [userId]);
 
   useEffect(() => {
-    const userIdL = localStorage.getItem("userId");
-    setUserId(userIdL);
-    const fetchChats = async () => {
-      if (!userId) return;
-      try {
-        const response = await axios.get(`http://localhost:3005/${userIdL}/getChats`);
-        console.log("Response ", response);
-        setChats(response.data);
-        console.log("Response Data ", response.data);
-      } catch (error) {
-        console.error("Error fetching chats:", error);
-      }
-    };
-
-    fetchChats();
-  }, [userId]);
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId && storedUserId !== userId) {
+      setUserId(storedUserId);
+      fetchChats();
+    }
+  }, [userId, fetchChats]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -63,16 +64,15 @@ export default function ChatPage() {
       alert("Please upload a valid image file!");
       return;
     }
-
-    setImage(file);
     setPreview(URL.createObjectURL(file));
 
-    // Upload to Supabase
     const fileExt = file.name.split(".").pop();
     const fileName = `${Date.now()}.${fileExt}`;
     const filePath = `uploads/${fileName}`;
 
-    const { data, error } = await supabase.storage.from("summerize").upload(filePath, file, { cacheControl: "3600", upsert: false });
+    const { error } = await supabase.storage
+      .from("summerize")
+      .upload(filePath, file, { cacheControl: "3600", upsert: false });
 
     if (error) {
       console.error("Upload Error:", error);
@@ -93,9 +93,6 @@ export default function ChatPage() {
 
     setMessages((prevMessages) => [...prevMessages, newMessage]);
     try {
-      console.log("Sending messages:", [...messages, newMessage]);
-      console.log("New Message ", newMessage);
-      // Make the API call to the backend to store the message
       const response = await axios.post(`http://localhost:3005/${userId}/summarize`, {
         title: currentTitle,
         content: newMessage.content,
@@ -104,35 +101,110 @@ export default function ChatPage() {
 
       const aiMessage: Message = {
         role: "bot",
-        content: response.data.ResponseText ||  "",
+        content: response.data.ResponseText || "",
         image: preview || "",
-      }
+      };
       setMessages((prevMessages) => [...prevMessages, aiMessage]);
       const generatedTitle = response.data.chatTitle;
       setCurrentChatToLocalStorage(generatedTitle);
-
     } catch (error) {
       console.error("Error saving chat:", error);
     }
 
     setInput("");
-    setImage(null);
     setPreview("");
   };
+
+  const downloadChatAsPDF = async () => {
+    setIsGeneratingPDF(true);
+    const chatElement = document.getElementById("chat-box");
+
+    if (!chatElement) {
+      console.error("Chat container not found");
+      setIsGeneratingPDF(false);
+      return;
+    }
+
+    const originalOverflow = chatElement.style.overflow;
+    chatElement.style.overflow = "visible";
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    try {
+      const canvas = await html2canvas(chatElement, {
+        scale: 2,
+        logging: true,
+        useCORS: true,
+        allowTaint: true,
+      });
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const imgWidth = pageWidth - 10;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 5, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 5, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save("chat_history.pdf");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Failed to generate PDF");
+    } finally {
+      chatElement.style.overflow = originalOverflow;
+      setIsGeneratingPDF(false);
+    }
+  };
+
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen bg-[#1E1C26] text-[#D1D5DB] border border-[#3A3A3A]">
       {/* Sidebar */}
-      <div className={cn("fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out md:relative", sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-20")}>
+      <div
+        className={cn(
+          "bg-[#1E1C26] text-[#D1D5DB] fixed inset-y-0 left-0 z-50 w-64 transition-transform duration-300 ease-in-out md:relative border border-[#3A3A3A]",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-20"
+        )}
+      >
         <div className="flex flex-col h-full">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <Button onClick={() => setChats([{ id: Date.now().toString(), title: "New Chat", messages: [] }, ...chats])} className="w-full justify-start gap-2" variant="outline">
+          <div className="p-4 bg-[#1E1C26] text-[#D1D5DB] border border-[#3A3A3A]">
+            <Button
+              onClick={() => {
+                setChats([{ id: Date.now().toString(), title: "New Chat", messages: [] }, ...chats]);
+              }}
+              className="w-full justify-start bg-[#1E1C26] cursor-pointer gap-2 border border-[#3A3A3A]"
+              variant="outline"
+            >
               <Plus size={18} />
               {sidebarOpen && <span>New chat</span>}
             </Button>
           </div>
           <div className="flex-1 overflow-y-auto">
             {chats.map((chat) => (
-              <button key={chat.id} onClick={() => { setCurrentChatToLocalStorage(chat.title); setActiveChat(chat.id); setMessages(chat.messages); }} className={cn("w-full text-left p-3 hover:bg-gray-100 dark:hover:bg-gray-700", activeChat === chat.id ? "bg-gray-200 dark:bg-gray-600 font-semibold" : "")}>
+              <button
+                key={chat.id}
+                onClick={() => {
+                  setCurrentChatToLocalStorage(chat.title);
+                  setActiveChat(chat.id);
+                  setMessages(chat.messages);
+                }}
+                className={cn(
+                  "w-full text-left p-3 hover:bg-gray-100",
+                  activeChat === chat.id ? "bg-gray-200 font-semibold cursor" : ""
+                )}
+              >
                 {sidebarOpen ? chat.title : <MessageSquare size={18} />}
               </button>
             ))}
@@ -142,36 +214,113 @@ export default function ChatPage() {
 
       {/* Chat Window */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <header className="h-14 border-b border-gray-200 dark:border-gray-700 flex items-center px-4">
-          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="md:hidden">
-            <Menu />
-          </Button>
-          <h1 className="text-lg font-semibold ml-2">{chats.find((chat) => chat.id === activeChat)?.title || "Chat"}</h1>
+        <header className="h-14 px-4 border-b border-[#3A3A3A] bg-[#1E1C26]">
+          <div className="flex items-center mt-4 justify-between w-65">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden"
+            >
+              <Menu />
+            </Button>
+            <h1 className="text-lg font-semibold ml-2">
+              {chats.find((chat) => chat.id === activeChat)?.title || "Chat"}
+            </h1>
+            {sidebarOpen ? (
+              <SidebarCloseIcon
+                className="text-[#D1D5DB]"
+                onClick={() => {
+                  setSidebarOpen(false);
+                }}
+              />
+            ) : (
+              <SidebarOpenIcon
+                className="text-[#D1D5DB]"
+                onClick={() => {
+                  setSidebarOpen(true);
+                }}
+              />
+            )}
+            <button disabled={isGeneratingPDF}>
+              <DownloadIcon onClick={downloadChatAsPDF} />
+              {isGeneratingPDF && <span>Generating...</span>}
+            </button>
+          </div>
         </header>
 
         {/* Messages Box */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
-            <div className={cn("flex", message.role === "user" ? "justify-end" : "justify-start")}>
-              <div className={cn("max-w-[75%] p-4 rounded-4xl shadow-md", message.role === "user" ? "bg-[#1E2939] text-white" : "bg-[#2F3948] text-white")}>
-                {message.image && <img src={message.image} alt="Uploaded" className="w-12 h-12 rounded-2xl border border-gray-300 mb-2" />}
-                <p>{message.message}</p>
+        <div id="chat-box" className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={cn("flex", message.role === "user" ? "justify-end" : "justify-start")}
+            >
+              <div
+                className={cn(
+                  "max-w-[75%] p-4 rounded-4xl shadow-md",
+                  message.role === "user" ? "bg-[#2A273C] text-[#D1D5DB]" : "bg-[#212121] text-[#D1D5DB] w-full"
+                )}
+              >
+                {message.role === "bot" && (
+                  <h1>Here&apos;s the Simple and Structured Explanation about the Topic:</h1>
+                )}
+                {message.image && (
+                  <Image
+                    src={message.image}
+                    alt="Uploaded"
+                    width={48}
+                    height={48}
+                    className="rounded-2xl mb-2"
+                  />
+                )}
+                {message.role === "bot" ? (
+                  <ul className="list-disc pl-5">
+                    {message.content
+                      ?.trim()
+                      .split("\\n")
+                      .map((line, idx) => (
+                        <li key={idx}>{line}</li>
+                      ))}
+                  </ul>
+                ) : (
+                  <p>{message.content}</p>
+                )}
               </div>
             </div>
           ))}
         </div>
 
         {/* Chat Input */}
-        <div className="border-t border-gray-200 dark:border-gray-700 p-4">
+        <div className="p-4 border-t border-[#3A3A3A] bg-[#1E1C26]">
           <div className="flex gap-2 items-center relative">
             <div className="relative flex items-center flex-1">
-              {preview && <img src={preview} alt="Preview" className="absolute right-12 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-md border border-gray-300" />}
-              <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type your message..." className="pr-10 h-15" />
+              {preview && (
+                <Image
+                  src={preview}
+                  alt="Preview"
+                  width={40}
+                  height={40}
+                  className="absolute right-12 top-1/2 transform -translate-y-1/2 rounded-md"
+                  unoptimized={true}
+                />
+              )}
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Type your message..."
+                className="pr-10 h-15 border border-[#3A3A3A]"
+              />
             </div>
 
             <label className="cursor-pointer">
               <ImageIcon size={24} />
-              <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
             </label>
 
             <Button onClick={sendMessage} disabled={!input.trim() && !preview}>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, User2, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { CircleUser } from "lucide-react";
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

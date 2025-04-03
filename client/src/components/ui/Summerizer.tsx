@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import Image from "next/image"; // Import the Next.js Image component
 
 export default function Summarizer() {
   const [image, setImage] = useState<File | null>(null);
@@ -8,7 +9,6 @@ export default function Summarizer() {
   const [summary, setSummary] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Handle image selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) {
       alert("Please select a valid image file.");
@@ -25,6 +25,7 @@ export default function Summarizer() {
     setImage(file);
     setPreview(URL.createObjectURL(file));
   };
+
   const uploadImageToSupabase = async () => {
     if (!image) return alert("Please select an image first!");
     setLoading(true);
@@ -34,7 +35,8 @@ export default function Summarizer() {
       const fileExt = image.name.split(".").pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `uploads/${fileName}`;
-      const { data, error } = await supabase.storage
+      
+      const { error } = await supabase.storage
         .from("summerize")
         .upload(filePath, image, {
           cacheControl: "3600",
@@ -46,15 +48,19 @@ export default function Summarizer() {
         console.error("Upload Error:", error);
         return;
       }
+
       const { data: urlData } = supabase.storage
         .from("summerize")
         .getPublicUrl(filePath);
+      
       if (!urlData) {
         alert("Failed to fetch image URL!");
         return;
       }
+
       const imageUrl = urlData.publicUrl;
       console.log("✅ Public Image URL:", imageUrl);
+      
       const response = await fetch("http://localhost:3005/summarize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -79,9 +85,24 @@ export default function Summarizer() {
     <div className="max-w-lg mx-auto p-4 bg-white shadow-lg rounded-lg">
       <h2 className="text-2xl font-semibold mb-4">Upload & Summarize Image</h2>
 
-      <input type="file" accept="image/*" onChange={handleImageChange} className="mb-4" />
+      <input 
+        type="file" 
+        accept="image/*" 
+        onChange={handleImageChange} 
+        className="mb-4" 
+      />
 
-      {preview && <img src={preview} alt="Preview" className="w-full h-64 object-cover rounded mb-4" />}
+      {preview && (
+        <div className="relative w-full h-64 mb-4">
+          <Image
+            src={preview}
+            alt="Preview"
+            fill
+            className="object-cover rounded"
+            unoptimized={true} // Required for blob URLs
+          />
+        </div>
+      )}
 
       <button
         onClick={uploadImageToSupabase}

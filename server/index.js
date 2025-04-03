@@ -32,16 +32,12 @@ async function imageUrlToBase64(imageUrl) {
 app.post("/:userId/summarize", async (req, res) => {
   try {
     const { image, content, title } = req.body;
-    console.log("Current Title ",title);
     const userId = req.params.userId;
     if (!userId) {
       return res.status(400).json({ error: "User ID is required" });
     }
-
     let summaryText = "";
     let chatMessages = [];
-
-    // Case 1: Only content is provided
     if (content && !image) {
       const response = await ai.models.generateContent({
         model: "gemini-2.0-flash",
@@ -73,33 +69,38 @@ app.post("/:userId/summarize", async (req, res) => {
       const generatedContent = await model.generateContent([serverPrompt, imagePart]);
       summaryText = generatedContent.response.text() || "Failed to generate summary";
     }
-    // Case 3: No content or image
     else {
       return res.status(400).json({ error: "Please provide either an image or content." });
     }
 
-    chatMessages.push({ role: "user", content: content });
+    // Store chat message
+    
+    chatMessages.push({ role: "user", content: content || "" ,image : image || ""});
     chatMessages.push({ role: "bot", content: summaryText });
 
-    const titlePrompt = `Generate a short 2 word and relevant title for this conversation based on the input given to you this is the input : ${content}}`;
+    // Step 1: Generate a title for the chat
+    const titlePrompt = `Generate a short 2 word and relevant title for this conversation based on the input given to you this is the input : ${content}`;
 
+    const titleResponse = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: titlePrompt,
+    });
+
+    const generatedTitle = titleResponse.candidates?.[0]?.content?.parts?.[0]?.text.trim() || "Untitled Chat";
+
+    // Step 2: Check if title already exists in userChats
     let user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     let existingChat = user.userChats.find(chat => chat.title === title);
-    console.log("Existing Chat ",existingChat);
-    const titleResponse = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: titlePrompt,
-    });
 
-    const generatedTitle = titleResponse.candidates?.[0]?.content?.parts?.[0]?.text || "Untitled Chat";
+
+
     if (existingChat) {
       existingChat.messages.push(...chatMessages);
     } else {
-      
       user.userChats.push({
         title: generatedTitle,
         messages: chatMessages,
@@ -108,13 +109,92 @@ app.post("/:userId/summarize", async (req, res) => {
 
     await user.save();
 
-    res.json({ user: user, chatTitle: generatedTitle , ResponseText : summaryText});
-    console.log("user ", user);
+    res.json({ user: user, chatTitle: generatedTitle, ResponseText: summaryText });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Something went wrong!" });
   }
 });
+
+
+app.post("/:userId/mindMap", async (req, res) => {
+  try {
+    const { content, title } = req.body;
+    const userId = req.params.userId;
+
+    if (!content || !userId) {
+      return res.status(400).json({ error: "User ID and content are required" });
+    }
+
+    // AI Prompt for Generating Mind Map Data
+    const prompt = `
+      Generate a structured JSON representation of a mind map for the topic: "${content}".
+      The main/root node should have the label: "${content}". 
+      Provide relevant subtopics as child nodes. the colors of the nodes and the edges should be uniques and look attractive so select different colors for the different node boxes and the edges .
+      Format the response in this JSON structure:
+      
+      {
+        "nodes": [
+          { "id": "1", "data": { "label": "${content}" }, "position": { "x": 250, "y": 0 }, "style": { "background": "#6D28D9", "color": "#fff", "border": "2px solid #4C1D95", "borderRadius": "10px", "padding": "10px" } }
+        ],
+        "edges": [
+          { "id": "e1-2", "source": "1", "target": "2", "style": { "stroke": "#F97316", "strokeWidth": 2 } }
+        ]
+      }
+
+      Ensure the mind map covers essential subtopics related to "${content}" and maintains a structured hierarchy with visually appealing colors.
+    `;
+
+    // Call Gemini AI to generate content
+    const mindMapResponse = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: prompt,
+    });
+
+    let rawResponse = mindMapResponse.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    rawResponse = rawResponse.replace(/```json\n|```/g, "").trim();
+
+    const mindMapData = JSON.parse(rawResponse);
+
+    // Check if parsed JSON is valid
+    if (!mindMapData.nodes || !mindMapData.edges) {
+      return res.status(500).json({ error: "Invalid mind map data from AI." });
+    }
+
+    let user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Check if a mind map with this title already exists
+    const existingMindMapIndex = user.userMindMaps.findIndex(map => map.title === title);
+    
+    if (existingMindMapIndex !== -1) {
+      // Update existing mind map
+      user.userMindMaps[existingMindMapIndex].mindMapData = mindMapData;
+    } else {
+      // Add new mind map
+      user.userMindMaps.push({
+        title: title || `Mind Map for ${content}`,
+        mindMapData: mindMapData, // No need to stringify since schema accepts Object
+      });
+    }
+
+    await user.save();
+
+    // Send success response after all operations are complete
+    return res.status(200).json({ 
+      success: true, 
+      message: "Mind map saved successfully",
+      mindMapData 
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ error: "Something went wrong!" });
+  }
+});
+
 
 
 // Route to get all chats of a user

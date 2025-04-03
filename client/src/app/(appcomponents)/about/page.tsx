@@ -1,7 +1,5 @@
 "use client";
-import { calsans } from "../../../fonts/calsans";
 import Image from "next/image";
-import { twMerge } from "tailwind-merge";
 import { TracingBeam } from "@/components/ui/tracing-beam";
 import VideoComponent from "@/components/ui/Video";
 import { Sparkles } from "lucide-react";
