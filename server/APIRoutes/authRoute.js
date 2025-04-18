@@ -1,25 +1,70 @@
-import User from "../Schema/User.js";
+import User from "../schema/User.js";
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-const authRoute = express.Router();
 
-authRoute.post("/register", async (req, res) => {
+
+
+
+const router = express.Router();
+
+router.post("/register", async (req, res) => {
     try {
-        const { userName, email, password } = req.body;
+        const { userName, email, password, name,avatar,coverImage,bio } = req.body;
+
+        if (!userName || !email || !password) {
+            return res.status(400).json({ error: "Username, email, and password are required" });
+        }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({ error: "Email already in use" });
+        }
+
+        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ userName, email, password: hashedPassword });
+
+        // Create new user with default values
+        const newUser = new User({
+            userName,
+            email,
+            password: hashedPassword,
+            name,
+            bio,
+            avatar,
+            coverImage 
+
+        });
+
         await newUser.save();
-        console.log("New User ",newUser)
-        res.status(201).json({ message: "User registered successfully" });
+        const userResponse = newUser.toObject();
+        delete userResponse.password;
+
+        res.status(201).json({ 
+            message: "User registered successfully",
+            user: userResponse
+        });
+
     } catch (err) {
-        res.status(500).json({ error: err.message });
-        console.log("error ",err);
+        console.error("Registration error:", err);
+        
+        // Handle specific errors
+        if (err.name === 'ValidationError') {
+            const errors = Object.values(err.errors).map(e => e.message);
+            return res.status(400).json({ error: errors.join(', ') });
+        }
+        
+        res.status(500).json({ 
+            error: "Registration failed",
+            details: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 });
 
 
-authRoute.post("/login", async (req, res) => {
+
+
+router.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
@@ -35,4 +80,6 @@ authRoute.post("/login", async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-export default authRoute;
+
+
+export default router;

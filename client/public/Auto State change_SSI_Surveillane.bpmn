@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1ka6orp" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="7.2.0">
+  <bpmn:process id="Process_CB86192F1524F" name="Auto State change_SSI_Surveillane" isExecutable="true" camunda:versionTag="1">
+    <bpmn:startEvent id="StartEvent_0amlems">
+      <bpmn:outgoing>Flow_1lgao7b</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_0nho84u">
+      <bpmn:incoming>Flow_0q7vlea</bpmn:incoming>
+      <bpmn:outgoing>Flow_1q9xr3y</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0r7f19u</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1f380fn</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1q9xr3y" name="Surveillance In Progress" sourceRef="Gateway_0nho84u" targetRef="Activity_00bnzp2">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${payload.prop('surveillanceStatus').value()=='surveillanceInProgress'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0r7f19u" sourceRef="Gateway_0nho84u" targetRef="Activity_0oxxu3e">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${payload.prop('surveillanceStatus').value()=='infectionSuspected'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1f380fn" sourceRef="Gateway_0nho84u" targetRef="Activity_0ts0z93">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${payload.prop('surveillanceStatus').value()=='closeTheSurveillance'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="Event_0shmeec">
+      <bpmn:incoming>Flow_0tqwz20</bpmn:incoming>
+      <bpmn:incoming>Flow_1wr67mk</bpmn:incoming>
+      <bpmn:incoming>Flow_0uioit7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0tqwz20" sourceRef="Activity_00bnzp2" targetRef="Event_0shmeec" />
+    <bpmn:sequenceFlow id="Flow_1wr67mk" sourceRef="Activity_0oxxu3e" targetRef="Event_0shmeec" />
+    <bpmn:sequenceFlow id="Flow_0uioit7" sourceRef="Activity_0ts0z93" targetRef="Event_0shmeec" />
+    <bpmn:serviceTask id="Activity_00bnzp2" name="Surveillance in Progress" camunda:delegateExpression="${formOperationAutomation}">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="operationType" value="create" />
+          <camunda:property name="metadataId" value="2025110317-192f1814-a75a-4b43-9197-e521651013bc" />
+          <camunda:property name="FA#remarks" value="ABC" />
+          <camunda:property name="FA#parent" value="$jsonPath.evaluate($json,&#39;$.id&#39;)" />
+          <camunda:property name="FA#action" value="2025110317-4341e873-d116-4618-8253-1dddd469c3b9" />
+          <camunda:property name="requestJSONVariableName" value="json" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1q9xr3y</bpmn:incoming>
+      <bpmn:outgoing>Flow_0tqwz20</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_0oxxu3e" name="Infection Suspected" camunda:delegateExpression="${formOperationAutomation}">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="operationType" value="create" />
+          <camunda:property name="metadataId" value="2025110317-192f1814-a75a-4b43-9197-e521651013bc" />
+          <camunda:property name="FA#remarks" value="ABC" />
+          <camunda:property name="FA#parent" value="$jsonPath.evaluate($json,&#39;$.id&#39;)" />
+          <camunda:property name="FA#action" value="2025110317-57c14898-b4f3-4a38-88d5-de2283c55178" />
+          <camunda:property name="requestJSONVariableName" value="json" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0r7f19u</bpmn:incoming>
+      <bpmn:outgoing>Flow_1wr67mk</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_0ts0z93" name="Close the Surveillance" camunda:delegateExpression="${formOperationAutomation}">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="operationType" value="create" />
+          <camunda:property name="metadataId" value="2025110317-192f1814-a75a-4b43-9197-e521651013bc" />
+          <camunda:property name="FA#remarks" value="ABC" />
+          <camunda:property name="FA#parent" value="$jsonPath.evaluate($json,&#39;$.id&#39;)" />
+          <camunda:property name="FA#action" value="2025110317-8ee5aaaa-d393-4445-b89c-b927beb55acc" />
+          <camunda:property name="requestJSONVariableName" value="json" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1f380fn</bpmn:incoming>
+      <bpmn:outgoing>Flow_0uioit7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_0tnt1e6">
+      <bpmn:incoming>Flow_1lgao7b</bpmn:incoming>
+      <bpmn:outgoing>Flow_0q7vlea</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0e90nak</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1lgao7b" sourceRef="StartEvent_0amlems" targetRef="Gateway_0tnt1e6" />
+    <bpmn:sequenceFlow id="Flow_0q7vlea" name="Form Completed" sourceRef="Gateway_0tnt1e6" targetRef="Gateway_0nho84u">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${payload.prop('formCompleted').value()=='yes'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0e90nak" name="Form Not completed" sourceRef="Gateway_0tnt1e6" targetRef="Activity_01jzf1c">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${payload.prop('formCompleted').value()=='no'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="Activity_01jzf1c" name="Save As Draft" camunda:delegateExpression="${formOperationAutomation}">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="operationType" value="create" />
+          <camunda:property name="metadataId" value="2025110317-192f1814-a75a-4b43-9197-e521651013bc" />
+          <camunda:property name="FA#remarks" value="ABC" />
+          <camunda:property name="FA#parent" value="$jsonPath.evaluate($json,&#39;$.id&#39;)" />
+          <camunda:property name="FA#action" value="2025190312-f29c37e5-0c85-42f0-9cd7-7728fef3d259" />
+          <camunda:property name="requestJSONVariableName" value="json" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0e90nak</bpmn:incoming>
+      <bpmn:outgoing>Flow_0m8ko61</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_0oqqk63">
+      <bpmn:incoming>Flow_0m8ko61</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0m8ko61" sourceRef="Activity_01jzf1c" targetRef="Event_0oqqk63" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_CB86192F1524F">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_0amlems">
+        <dc:Bounds x="2" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="9" y="105" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0nho84u_di" bpmnElement="Gateway_0nho84u" isMarkerVisible="true">
+        <dc:Bounds x="295" y="55" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0shmeec_di" bpmnElement="Event_0shmeec">
+        <dc:Bounds x="802" y="82" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_05as2tc_di" bpmnElement="Activity_00bnzp2">
+        <dc:Bounds x="460" y="-70" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0dhs3ax_di" bpmnElement="Activity_0oxxu3e">
+        <dc:Bounds x="460" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0grcsse_di" bpmnElement="Activity_0ts0z93">
+        <dc:Bounds x="470" y="240" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0tnt1e6_di" bpmnElement="Gateway_0tnt1e6" isMarkerVisible="true">
+        <dc:Bounds x="95" y="55" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1ra50cp_di" bpmnElement="Activity_01jzf1c">
+        <dc:Bounds x="70" y="180" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0oqqk63_di" bpmnElement="Event_0oqqk63">
+        <dc:Bounds x="102" y="322" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1q9xr3y_di" bpmnElement="Flow_1q9xr3y">
+        <di:waypoint x="320" y="55" />
+        <di:waypoint x="320" y="-30" />
+        <di:waypoint x="460" y="-30" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="313" y="-44" width="73" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0r7f19u_di" bpmnElement="Flow_0r7f19u">
+        <di:waypoint x="345" y="80" />
+        <di:waypoint x="400" y="80" />
+        <di:waypoint x="400" y="120" />
+        <di:waypoint x="460" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1f380fn_di" bpmnElement="Flow_1f380fn">
+        <di:waypoint x="320" y="105" />
+        <di:waypoint x="320" y="280" />
+        <di:waypoint x="470" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0tqwz20_di" bpmnElement="Flow_0tqwz20">
+        <di:waypoint x="560" y="-30" />
+        <di:waypoint x="681" y="-30" />
+        <di:waypoint x="681" y="100" />
+        <di:waypoint x="802" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1wr67mk_di" bpmnElement="Flow_1wr67mk">
+        <di:waypoint x="560" y="120" />
+        <di:waypoint x="681" y="120" />
+        <di:waypoint x="681" y="100" />
+        <di:waypoint x="802" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0uioit7_di" bpmnElement="Flow_0uioit7">
+        <di:waypoint x="570" y="280" />
+        <di:waypoint x="686" y="280" />
+        <di:waypoint x="686" y="100" />
+        <di:waypoint x="802" y="100" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1lgao7b_di" bpmnElement="Flow_1lgao7b">
+        <di:waypoint x="38" y="80" />
+        <di:waypoint x="95" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0q7vlea_di" bpmnElement="Flow_0q7vlea">
+        <di:waypoint x="145" y="80" />
+        <di:waypoint x="295" y="80" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="181" y="62" width="83" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0e90nak_di" bpmnElement="Flow_0e90nak">
+        <di:waypoint x="120" y="105" />
+        <di:waypoint x="120" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="111" y="140" width="52" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0m8ko61_di" bpmnElement="Flow_0m8ko61">
+        <di:waypoint x="120" y="260" />
+        <di:waypoint x="120" y="322" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,15 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Menu, Send, Plus, MessageSquare, Image as ImageIcon, SidebarOpenIcon, SidebarCloseIcon, DownloadIcon } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Menu, Plus, MessageSquare, Image as ImageIcon, SidebarOpenIcon, SidebarCloseIcon, DownloadIcon } from "lucide-react";
+import WelcomeCard from "@/components/ui/welcome-card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabaseClient";
 import axios from "axios";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import Image from "next/image";
+import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 
 type Message = {
   role: "user" | "bot";
@@ -34,27 +35,45 @@ export default function ChatPage() {
   const [currentTitle, setCurrentTitle] = useState<string | null>("");
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  const setCurrentChatToLocalStorage = (title: string) => {
-    setCurrentTitle(title);
-  };
+
+
+  useEffect(() => {
+    const storedUserId = localStorage.getItem("userId");
+    setUserId(storedUserId);
+  }, []);
+
+
+
 
   const fetchChats = useCallback(async () => {
     if (!userId) return;
     try {
-      const response = await axios.get(`http://localhost:3005/${userId}/getChats`);
+      const response = await axios.get(
+        `https://study-mate-ai-server.vercel.app/${userId}/getChats`
+      );
       setChats(response.data);
+      console.log(response.data);
     } catch (error) {
       console.error("Error fetching chats:", error);
     }
   }, [userId]);
 
   useEffect(() => {
-    const storedUserId = localStorage.getItem("userId");
-    if (storedUserId && storedUserId !== userId) {
-      setUserId(storedUserId);
+    if (userId) {
       fetchChats();
     }
   }, [userId, fetchChats]);
+
+
+
+  const placeholders = [
+    "Explain me about the Time Complexity",
+    "How to plan a day",
+    "Explain me about the Photosynthesis",
+    "What is the Currying in the Javascript",
+    "How to Study focused?",
+  ];
+
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -65,7 +84,7 @@ export default function ChatPage() {
       return;
     }
     setPreview(URL.createObjectURL(file));
-
+    console.log("URL ", preview);
     const fileExt = file.name.split(".").pop();
     const fileName = `${Date.now()}.${fileExt}`;
     const filePath = `uploads/${fileName}`;
@@ -82,7 +101,7 @@ export default function ChatPage() {
     const { data: urlData } = supabase.storage.from("summerize").getPublicUrl(filePath);
     setPreview(urlData.publicUrl);
   };
-
+  console.log("currentTitle ", currentTitle);
   const sendMessage = async () => {
     if (!input.trim() && !preview) return;
     const newMessage: Message = {
@@ -98,15 +117,14 @@ export default function ChatPage() {
         content: newMessage.content,
         image: newMessage.image,
       });
-
+      console.log("preview ", preview);
       const aiMessage: Message = {
         role: "bot",
         content: response.data.ResponseText || "",
         image: preview || "",
       };
       setMessages((prevMessages) => [...prevMessages, aiMessage]);
-      const generatedTitle = response.data.chatTitle;
-      setCurrentChatToLocalStorage(generatedTitle);
+      setCurrentTitle(response.data.chatTitle);
     } catch (error) {
       console.error("Error saving chat:", error);
     }
@@ -159,7 +177,7 @@ export default function ChatPage() {
         heightLeft -= pageHeight;
       }
 
-      pdf.save("chat_history.pdf");
+      pdf.save(`chat/studymate-ai/${currentTitle}/chat_history.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
       alert("Failed to generate PDF");
@@ -168,6 +186,20 @@ export default function ChatPage() {
       setIsGeneratingPDF(false);
     }
   };
+
+  const handleNewChat = () => {
+    const newChat = {
+      id: Date.now().toString(),
+      title: "New Chat",
+      messages: []
+    };
+    setChats([newChat, ...chats]);
+    setActiveChat(newChat.id);
+    setMessages([]);
+    setCurrentTitle(newChat.title);
+    setInput("");
+    setPreview("");
+  }
 
   return (
     <div className="flex h-screen bg-[#1E1C26] text-[#D1D5DB] border border-[#3A3A3A]">
@@ -181,9 +213,7 @@ export default function ChatPage() {
         <div className="flex flex-col h-full">
           <div className="p-4 bg-[#1E1C26] text-[#D1D5DB] border border-[#3A3A3A]">
             <Button
-              onClick={() => {
-                setChats([{ id: Date.now().toString(), title: "New Chat", messages: [] }, ...chats]);
-              }}
+              onClick={handleNewChat}
               className="w-full justify-start bg-[#1E1C26] cursor-pointer gap-2 border border-[#3A3A3A]"
               variant="outline"
             >
@@ -196,13 +226,16 @@ export default function ChatPage() {
               <button
                 key={chat.id}
                 onClick={() => {
-                  setCurrentChatToLocalStorage(chat.title);
                   setActiveChat(chat.id);
-                  setMessages(chat.messages);
+                  setCurrentTitle(chat.title);
+                  setMessages(chat.messages || []);
+                  setInput("");
+                  setPreview("");
+                  if (chat.messages) fetchChats();
                 }}
                 className={cn(
-                  "w-full text-left p-3 hover:bg-gray-100",
-                  activeChat === chat.id ? "bg-gray-200 font-semibold cursor" : ""
+                  "w-full text-left p-3 hover:bg-[#212121]",
+                  activeChat === chat.id ? "bg-[#1E1C26] font-semibold cursor" : ""
                 )}
               >
                 {sidebarOpen ? chat.title : <MessageSquare size={18} />}
@@ -213,7 +246,7 @@ export default function ChatPage() {
       </div>
 
       {/* Chat Window */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      {currentTitle && <div className="flex-1 flex flex-col h-full overflow-hidden">
         <header className="h-14 px-4 border-b border-[#3A3A3A] bg-[#1E1C26]">
           <div className="flex items-center mt-4 justify-between w-65">
             <Button
@@ -225,7 +258,7 @@ export default function ChatPage() {
               <Menu />
             </Button>
             <h1 className="text-lg font-semibold ml-2">
-              {chats.find((chat) => chat.id === activeChat)?.title || "Chat"}
+              {currentTitle}
             </h1>
             {sidebarOpen ? (
               <SidebarCloseIcon
@@ -265,15 +298,15 @@ export default function ChatPage() {
                 {message.role === "bot" && (
                   <h1>Here&apos;s the Simple and Structured Explanation about the Topic:</h1>
                 )}
-                {message.image && (
-                  <Image
+                <div className="relative w-12 h-12"> {/* Adjust size as needed */}
+                  {message.image && <Image
                     src={message.image}
                     alt="Uploaded"
-                    width={48}
-                    height={48}
-                    className="rounded-2xl mb-2"
-                  />
-                )}
+                    fill // Makes the image fill its container
+                    className="rounded-2xl object-contain"
+                  />}
+
+                </div>
                 {message.role === "bot" ? (
                   <ul className="list-disc pl-5">
                     {message.content
@@ -301,15 +334,14 @@ export default function ChatPage() {
                   alt="Preview"
                   width={40}
                   height={40}
-                  className="absolute right-12 top-1/2 transform -translate-y-1/2 rounded-md"
+                  className="absolute right top-1/2 transform -translate-y-1/2 rounded-md"
                   unoptimized={true}
                 />
               )}
-              <Input
-                value={input}
+              <PlaceholdersAndVanishInput
+                placeholders={placeholders}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message..."
-                className="pr-10 h-15 border border-[#3A3A3A]"
+                onSubmit={sendMessage}
               />
             </div>
 
@@ -322,13 +354,13 @@ export default function ChatPage() {
                 className="hidden"
               />
             </label>
-
-            <Button onClick={sendMessage} disabled={!input.trim() && !preview}>
-              <Send size={18} />
-            </Button>
           </div>
         </div>
-      </div>
+      </div>}
+      {!currentTitle && <div className="flex-1 flex flex-col">
+          <WelcomeCard onNewChat={handleNewChat} />
+      </div>}
+
     </div>
   );
 }

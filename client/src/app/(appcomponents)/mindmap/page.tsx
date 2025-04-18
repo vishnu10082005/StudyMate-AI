@@ -1,331 +1,132 @@
-"use client";
-import { Download } from "lucide-react";
-import React, { useRef } from "react";
-import ReactFlow, { MiniMap, Controls, Background,} from "reactflow";
-import "reactflow/dist/style.css";
-import DomToImage from "dom-to-image";
-import jsPDF from "jspdf";
+"use client"
+import { useState } from "react"
+import type React from "react"
+
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { BrainCircuit, Sparkles } from "lucide-react"
+import axios from "axios"
+import { MultiStepLoader as Loader } from "@/components/ui/multi-step-loader";
+
+export default function MindMapGenerator() {
+  const [content, setContent] = useState("")
+  const [title, setTitle] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false);
+  const router = useRouter()
 
 
- const data = {
-    "mindMapData": {
-      "nodes": [
-        {
-          "id": "1",
-          "data": {
-            "label": "Learn Data Structures"
-          },
-          "position": {
-            "x": 0,
-            "y": 0
-          },
-          "style": {
-            "background": "#6D28D9",
-            "color": "#fff",
-            "border": "2px solid #4C1D95",
-            "borderRadius": "10px",
-            "padding": "10px"
-          }
-        },
-        {
-          "id": "2",
-          "data": {
-            "label": "Arrays"
-          },
-          "position": {
-            "x": -400,
-            "y": 200
-          },
-          "style": {
-            "background": "#F97316",
-            "color": "#fff",
-            "border": "2px solid #C2410C",
-            "borderRadius": "8px",
-            "padding": "8px"
-          }
-        },
-        {
-          "id": "3",
-          "data": {
-            "label": "Linked Lists"
-          },
-          "position": {
-            "x": -200,
-            "y": 200
-          },
-          "style": {
-            "background": "#22C55E",
-            "color": "#fff",
-            "border": "2px solid #16A34A",
-            "borderRadius": "8px",
-            "padding": "8px"
-          }
-        },
-        {
-          "id": "4",
-          "data": {
-            "label": "Stacks"
-          },
-          "position": {
-            "x": 0,
-            "y": 200
-          },
-          "style": {
-            "background": "#0EA5E9",
-            "color": "#fff",
-            "border": "2px solid #0284C7",
-            "borderRadius": "8px",
-            "padding": "8px"
-          }
-        },
-        {
-          "id": "5",
-          "data": {
-            "label": "Queues"
-          },
-          "position": {
-            "x": 200,
-            "y": 200
-          },
-          "style": {
-            "background": "#EAB308",
-            "color": "#fff",
-            "border": "2px solid #CA8A04",
-            "borderRadius": "8px",
-            "padding": "8px"
-          }
-        },
-        {
-          "id": "6",
-          "data": {
-            "label": "Trees"
-          },
-          "position": {
-            "x": 400,
-            "y": 200
-          },
-          "style": {
-            "background": "#DB2777",
-            "color": "#fff",
-            "border": "2px solid #BE185D",
-            "borderRadius": "8px",
-            "padding": "8px"
-          }
-        },
-        {
-          "id": "7",
-          "data": {
-            "label": "Graphs"
-          },
-          "position": {
-            "x": 600,
-            "y": 200
-          },
-          "style": {
-            "background": "#A855F7",
-            "color": "#fff",
-            "border": "2px solid #7E22CE",
-            "borderRadius": "8px",
-            "padding": "8px"
-          }
-        },
-        {
-          "id": "8",
-          "data": {
-            "label": "Hash Tables"
-          },
-          "position": {
-            "x": -300,
-            "y": 400
-          },
-          "style": {
-            "background": "#EC4899",
-            "color": "#fff",
-            "border": "2px solid #BE185D",
-            "borderRadius": "8px",
-            "padding": "8px"
-          }
-        },
-        {
-          "id": "9",
-          "data": {
-            "label": "Heap",
-            "description": "Priority Queue"
-          },
-          "position": {
-            "x": 300,
-            "y": 400
-          },
-          "style": {
-            "background": "#64748B",
-            "color": "#fff",
-            "border": "2px solid #475569",
-            "borderRadius": "8px",
-            "padding": "8px"
-          }
-        },
-        {
-          "id": "10",
-          "data": {
-            "label": "Time Complexity",
-            "description": "Big O Notation"
-          },
-          "position": {
-            "x": -600,
-            "y": 200
-          },
-          "style": {
-            "background": "#14B8A6",
-            "color": "#fff",
-            "border": "2px solid #0E7490",
-            "borderRadius": "8px",
-            "padding": "8px"
-          }
-        }
-      ],
-      "edges": [
-        {
-          "id": "e1-2",
-          "source": "1",
-          "target": "2",
-          "style": {
-            "stroke": "#F97316",
-            "strokeWidth": 2
-          }
-        },
-        {
-          "id": "e1-3",
-          "source": "1",
-          "target": "3",
-          "style": {
-            "stroke": "#22C55E",
-            "strokeWidth": 2
-          }
-        },
-        {
-          "id": "e1-4",
-          "source": "1",
-          "target": "4",
-          "style": {
-            "stroke": "#0EA5E9",
-            "strokeWidth": 2
-          }
-        },
-        {
-          "id": "e1-5",
-          "source": "1",
-          "target": "5",
-          "style": {
-            "stroke": "#EAB308",
-            "strokeWidth": 2
-          }
-        },
-        {
-          "id": "e1-6",
-          "source": "1",
-          "target": "6",
-          "style": {
-            "stroke": "#DB2777",
-            "strokeWidth": 2
-          }
-        },
-        {
-          "id": "e1-7",
-          "source": "1",
-          "target": "7",
-          "style": {
-            "stroke": "#A855F7",
-            "strokeWidth": 2
-          }
-        },
-        {
-          "id": "e2-8",
-          "source": "2",
-          "target": "8",
-          "style": {
-            "stroke": "#EC4899",
-            "strokeWidth": 2
-          }
-        },
-        {
-          "id": "e5-9",
-          "source": "5",
-          "target": "9",
-          "style": {
-            "stroke": "#64748B",
-            "strokeWidth": 2
-          }
-        },
-        {
-          "id": "e1-10",
-          "source": "1",
-          "target": "10",
-          "style": {
-            "stroke": "#14B8A6",
-            "strokeWidth": 2
-          }
-        }
-      ]
+  const loadingStates = [
+    {
+      text: "🧠 Analyzing your topic...",
+    },
+    {
+      text: "🔍 Identifying key concepts...",
+    },
+    {
+      text: "🤝 Discovering relationships...",
+    },
+    {
+      text: "📊 Structuring the hierarchy...",
+    },
+    {
+      text: "🎨 Designing visual layout...",
+    },
+    {
+      text: "🌈 Applying color scheme...",
+    },
+    {
+      text: "⚡ Optimizing connections...",
+    },
+    {
+      text: "✨ Finalizing your mind map!",
+    },
+  ];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true);
+    if (!content.trim()) {
+      setError("Please enter a topic for your mind map")
+      return
+    }
+    setError("")
+
+    try {
+      const userId = localStorage.getItem("userId");
+      console.log("User Id ", userId)
+      console.log("Content", typeof (content));
+
+      const response = await axios.post(`https://study-mate-ai-server.vercel.app/${userId}/mindMap`, { content: content });
+      localStorage.setItem("mindMapData", JSON.stringify(response.data.mindMapData));
+      const latestOne = response.data.latestOne;
+      const latestId=response.data.allMindMaps[latestOne]._id;
+      setLoading(false);
+      router.push(`/mindmap/output/${latestId}`);
+    } catch (err) {
+      console.error("Error generating mind map:", err)
+      setError(err instanceof Error ? err.message : "Something went wrong")
+      localStorage.setItem("mindMapData","");
+    } finally {
+      setLoading(false);
     }
   }
-  const initialNodes = data?.mindMapData?.nodes || [];
-  const initialEdges = data?.mindMapData?.edges || [];
 
-export default function MindMap() {
-    const nodes =initialNodes;
-    const edges = initialEdges
-    const reactFlowWrapper = useRef<HTMLDivElement>(null);
-
-    const downloadPDF = async () => {
-        if (!reactFlowWrapper.current) return;
-        const imgData = await DomToImage.toPng(reactFlowWrapper.current);
-        const pdf = new jsPDF("landscape", "mm", "a4");
-        const imgWidth = 280;
-        const imgHeight = (imgWidth * reactFlowWrapper.current.clientHeight) / reactFlowWrapper.current.clientWidth
-        pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
-        pdf.save("mindmap.pdf");
-    };
-
-    const saveAsImage = async () => {
-        if (!reactFlowWrapper.current) return;
-        try {
-            const imgData = await DomToImage.toPng(reactFlowWrapper.current);
-            console.log(imgData);
-            const link = document.createElement("a");
-            link.href = imgData;
-            link.download = "mindMap.png";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (error) {
-            console.error("Error saving image:", error);
-        }
-    };
-
-    return (
-        <div className="bg-[#1E1C26] w-screen h-screen flex flex-col items-center justify-center">
-            <div className="flex gap-4 mb-4">
-                <button
-                    onClick={downloadPDF}
-                    className="bg-[1E1C26] border-gray-200 dark:border-gray-700  text-white px-4 py-2 rounded-md shadow-md flex items-center gap-2 cursor-pointer"
-                >
-                    <Download size={20} /> Download PDF
-                </button>
-                <button
-                    onClick={saveAsImage}
-                    className="bg-[1E1C26] text-white px-4 py-2 rounded-md shadow-md flex items-center gap-2 cursor-pointer"
-                >
-                    <Download size={20} /> Download Image
-                </button>
+  return (
+    <div className="min-h-screen bg-[#1E1C26] flex flex-col items-center justify-center p-4">
+      <Card className="w-full max-w-md bg-gray-800 border-gray-700 text-white">
+        <CardHeader className="space-y-1">
+          <div className="flex items-center justify-center mb-4">
+            <BrainCircuit size={40} className="text-purple-500" />
+          </div>
+          <CardTitle className="text-2xl font-bold text-center">Mind Map Generator</CardTitle>
+          <CardDescription className="text-gray-400 text-center">
+            Enter a topic to generate a visual mind map
+          </CardDescription>
+        </CardHeader>
+          {/* Core Loader Modal */}
+          <Loader loadingStates={loadingStates} loading={loading} duration={2000} />
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="content" className="text-sm font-medium text-gray-300">
+                Topic
+              </label>
+              
+              <Textarea
+                id="content"
+                placeholder="Enter a topic (e.g., 'Machine Learning', 'Web Development')"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="bg-gray-700 border-gray-600 placeholder:text-gray-400"
+                rows={3}
+              />
             </div>
-
-            <div ref={reactFlowWrapper} className="w-4/5 h-4/5 bg-white rounded-lg shadow-lg">
-                <ReactFlow nodes={nodes} edges={edges}>
-                    <MiniMap />
-                    <Controls />
-                    <Background />
-                </ReactFlow>
+            <div className="space-y-2">
+              <label htmlFor="title" className="text-sm font-medium text-gray-300">
+                Title (optional)
+              </label>
+              <Input
+                id="title"
+                placeholder="Enter a title for your mind map"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="bg-gray-700 border-gray-600 placeholder:text-gray-400"
+              />
             </div>
-        </div>
-    );
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+          </form>
+        </CardContent>
+        <CardFooter>
+        <Button className="bg-gradient-to-r bg-gradient-to-r from-indigo-500 to-pink-500 text-white" onClick={handleSubmit}>
+          Generate MindMap  <Sparkles className="ml-2 h-4 w-4" />
+        </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  )
 }
+

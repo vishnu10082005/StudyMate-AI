@@ -51,3 +51,4 @@ docker-compose.override.yml
 # Git
 .git/
 .gitignore
+.vercel

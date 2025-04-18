@@ -7,7 +7,6 @@ body {
   background-color: #1E1C26;
 }
 
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -49,8 +48,6 @@ body {
 }
 
 :root {
-  --background: rgb(255, 255, 255);
-  --foreground: rgb(37, 37, 37);
   --card: rgb(255, 255, 255);
   --card-foreground: rgb(37, 37, 37);
   --popover: rgb(255, 255, 255);
@@ -73,6 +70,16 @@ body {
   --chart-4: rgb(200, 220, 60);
   --chart-5: rgb(180, 170, 50);
   --sidebar: rgb(250, 250, 250);
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 .dark {
@@ -100,8 +107,14 @@ body {
   --chart-4: rgb(140, 90, 220);
   --chart-5: rgb(160, 100, 40);
   --sidebar: rgb(50, 50, 50);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
-
 
 @layer base {
   * {
@@ -110,5 +123,16 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
