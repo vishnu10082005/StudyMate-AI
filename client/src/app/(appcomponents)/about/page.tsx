@@ -3,7 +3,7 @@ import Image from "next/image";
 import React from "react";
 import { Timeline } from "@/components/ui/timeline";
 
-export default function TimelineDemo() {
+export default function About() {
   const data = [
     {
       title: "Company's Journey",
@@ -264,9 +264,7 @@ export default function TimelineDemo() {
       ),
     },
   ];
-  return (
-    <div className="w-full">
+  return (  
       <Timeline data={data} />
-    </div>
   );
 }

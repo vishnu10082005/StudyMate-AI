@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { MessageSquare, Map, CheckSquare, FileText, Edit, Grid3X3, List } from "lucide-react"
+import { MessageSquare, Map, CheckSquare, FileText, Edit, Grid3X3, List, LogOut, LogOutIcon } from "lucide-react"
 import BlogCard from "@/components/ui/blog-card"
 import axios from "axios"
 import UserAvatar from "@/components/ui/useAvatar"
@@ -56,6 +56,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<UserType | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [likes, setLikes] = useState(0);
+
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
     setUserId(storedUserId);
@@ -142,6 +143,13 @@ export default function ProfilePage() {
               <Edit className="h-4 w-4 mr-2" />
               Edit Profile
             </Button>
+            <Button variant="outline" className="border-[#323042] bg-[#252330] hover:bg-[#2A2838] hover:text-white cursor-pointer hover:bg-red-500" onClick={() => {
+                localStorage.removeItem("isLogin")
+                router.push("/");
+              }}>
+              <LogOutIcon className="h-4 w-4 mr-2" />
+              LogOut
+            </Button>
           </div>
         </div>
 
@@ -194,13 +202,13 @@ export default function ProfilePage() {
                 <Button
                   variant="outline"
                   className="border-[#323042] bg-[#2A2838] hover:bg-[#323042] justify-start h-auto py-4"
-                  onClick={() => router.push("/notes")}
+                  onClick={() => router.push("/blog")}
                 >
                   <div className="flex flex-col items-center md:flex-row md:items-start text-left">
                     <FileText className="h-5 w-5 mb-2 md:mb-0 md:mr-3 text-white" />
                     <div className="cursor-pointer">
-                      <p className="font-medium text-white">My Notes</p>
-                      <p className="text-xs text-gray-400 mt-1">Access your notes</p>
+                      <p className="font-medium text-white">My Blogs</p>
+                      <p className="text-xs text-gray-400 mt-1">Access your Blogs</p>
                     </div>
                   </div>
                 </Button>

@@ -88,6 +88,7 @@ const UserSchema = new mongoose.Schema({
       return `Member since ${new Date(this.registeredAt).getFullYear()}`
     },
   },
+  isPro : {type:Boolean, default:false},
   userBlogs: [BlogPostSchema],
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
