@@ -11,11 +11,11 @@ import BlogCard from "@/components/ui/blog-card"
 import UserInitial from "@/components/ui/user-initial"
 import { Skeleton } from "@/components/ui/skeleton"
 import axios from "axios"
-import { toast } from "@/components/ui/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 
 interface Blog {
   _id: string
-  id?:string
+  id?: string
   title: string
   content: string
   image: string
@@ -49,7 +49,7 @@ export default function UserProfilePage() {
   const router = useRouter()
   const params = useParams<{ username: string }>()
   const username = params.username as string
-
+  const { toast } = useToast()
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [isFollowing, setIsFollowing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -71,7 +71,7 @@ export default function UserProfilePage() {
 
       setLoadingProfile(true)
       try {
-        const response = await axios.get(`http://localhost:3005/${username}/viewProfile`)
+        const response = await axios.get(`https://study-mate-ai-server.vercel.app/${username}/viewProfile`)
 
         if (response.data && response.data.user) {
           const userData = response.data.user
@@ -130,7 +130,7 @@ export default function UserProfilePage() {
       const endpoint = isFollowing ? "unfollow" : "follow"
 
       // Send the current user ID as the follower
-      const response = await axios.put(`http://localhost:3005/${profileUser._id}/${endpoint}`, {
+      const response = await axios.put(`https://study-mate-ai-server.vercel.app/${profileUser._id}/${endpoint}`, {
         followerId: currentUserId,
       })
 
@@ -147,7 +147,7 @@ export default function UserProfilePage() {
             ...profileUser,
             followers: updatedFollowers,
           })
-          
+
         }
 
         toast({
@@ -354,7 +354,7 @@ export default function UserProfilePage() {
               <Button
                 variant="outline"
                 className="border-[#323042] bg-[#252330] hover:bg-[#2A2838] cursor-not-allowed"
-                // onClick={handleMessage}
+              // onClick={handleMessage}
               >
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Message

@@ -72,7 +72,7 @@ export default function ExplorePage() {
     if (!userId) return
     setIsLoading(true)
     try {
-      const response = await axios.get(`http://localhost:3005/getAllBlogs`)
+      const response = await axios.get(`https://study-mate-ai-server.vercel.app/getAllBlogs`)
       const blogs = response.data.blogs
       setAllPosts(blogs)
 

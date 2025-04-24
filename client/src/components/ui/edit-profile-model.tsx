@@ -160,7 +160,7 @@ export default function EditProfileModal({ isOpen, onClose, userData, onProfileU
       console.log(updateData);
 
       const response = await axios.put(
-        `http://localhost:3005/${id}/editedProfile`,
+        `https://study-mate-ai-server.vercel.app/${id}/editedProfile`,
         {name,
         userName,
         bio,

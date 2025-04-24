@@ -1,7 +1,7 @@
 "use client"
 
 // Base API URL - replace with your actual API URL
-const API_BASE_URL = "http://localhost:3005/todos"
+const API_BASE_URL = "https://study-mate-ai-server.vercel.app/todos"
 
 // Types
 export interface Todo {

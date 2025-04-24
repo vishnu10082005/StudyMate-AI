@@ -26,7 +26,7 @@ export default function BlogPage() {
     if (!userId) return;
     try {
       const response = await axios.get(
-        `http://localhost:3005/${userId}/getBlogs`
+        `https://study-mate-ai-server.vercel.app/${userId}/getBlogs`
       );
       setBlogs(response.data.userBlogs);
       console.log(response.data.userBlogs);
