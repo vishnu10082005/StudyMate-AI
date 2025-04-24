@@ -140,7 +140,6 @@ export default function PricingPage() {
         },
       }
 
-      // Send verification request to backend
       const verificationResponse = await axios.post(
         "https://study-mate-ai-server.vercel.app/paymentverification",
         paymentData,
@@ -247,8 +246,6 @@ export default function PricingPage() {
             handlePaymentSuccess(response)
           },
         }
-
-        // Initialize Razorpay
         const razorpay = new window.Razorpay(options)
         razorpay.on("payment.failed", (response: any) => {
           toast({

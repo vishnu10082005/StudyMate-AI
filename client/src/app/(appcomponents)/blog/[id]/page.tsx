@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar, Tag, ArrowLeft, Heart, MessageSquare, Share2, Bookmark, User, Users } from "lucide-react"
 import UserAvatar from "@/components/ui/useAvatar"
 import axios from "axios"
-import {  useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import { Textarea } from "@/components/ui/textarea"
 import { formatDistanceToNow } from "date-fns"
 
@@ -68,17 +68,16 @@ export default function BlogPostPage() {
   const [commentContent, setCommentContent] = useState("")
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [comments, setComments] = useState<Comment[]>([])
-  const [user,setUser]= useState<UserType>({});
+  const [user, setUser] = useState<UserType>({});
 
   const { id } = useParams<{ id: string }>()
 
-  // Get current user ID from localStorage
   useEffect(() => {
     const userId = localStorage.getItem("userId")
     setCurrentUserId(userId)
   }, [])
-const { toast } = useToast()
-  // Fetch author data
+  const { toast } = useToast()
+
   const fetchAuthor = useCallback(async () => {
     if (!userName) return
     try {
@@ -86,12 +85,10 @@ const { toast } = useToast()
       const authorData = response.data.user
       setAuthor(authorData)
 
-      // Check if current user is the author
       if (currentUserId && authorData._id) {
         setIsCurrentUserAuthor(currentUserId === authorData._id)
       }
 
-      // Check if current user follows the author
       if (currentUserId && authorData.followers) {
         setIsFollowing(authorData.followers.includes(currentUserId))
       }
@@ -119,7 +116,7 @@ const { toast } = useToast()
         return total + (Array.isArray(like) ? like.length : 1);
       }, 0);
 
-      
+
       console.log("TotalLikes ", totalLikes);
     } catch (error) {
       console.error("Error fetching chats:", error);
@@ -131,7 +128,6 @@ const { toast } = useToast()
       fetchUser();
     }
   }, [currentUserId, fetchUser]);
-  // Fetch blog post
   const fetchSingleBlog = useCallback(async () => {
     if (!id) return
     try {
@@ -141,7 +137,6 @@ const { toast } = useToast()
       setUserName(blogData.authorName)
       setComments(blogData.comments)
 
-      // Check if current user has liked this post
       if (currentUserId && blogData.likes) {
         setLiked(blogData.likes.includes(currentUserId))
       }
@@ -158,7 +153,6 @@ const { toast } = useToast()
     }
   }, [id, fetchSingleBlog])
 
-  // Handle follow/unfollow
   const handleFollowToggle = async () => {
     if (!currentUserId || !author?._id) {
       toast({
@@ -215,7 +209,19 @@ const { toast } = useToast()
       })
 
       if (response.data.success) {
-        alert("Liked")
+        if (response.data.isLiked) {
+          toast({
+            title: "Liked",
+            description: "Liked Thank you for liking",
+            variant: "success",
+          })
+        }
+        else {
+          toast({
+            title: "DisLiked",
+            description: "You have successfully disliked , Please share your comment",
+          })
+        }
         setLiked(!liked)
         setBlog((prevBlog) => {
           if (!prevBlog) return null
@@ -254,16 +260,12 @@ const { toast } = useToast()
     setIsSubmittingComment(true)
 
     try {
-      // Using the route you provided
       const response = await axios.put(`https://study-mate-ai-server.vercel.app/${blog.authorId}/add-comment/${blog._id}`, {
         commenterId: currentUserId,
         content: commentContent,
       })
 
       if (response.data.success) {
-        // Use the comment data directly from the response
-        console.log("data :", response.data.newComment)
-        // const newComment = response.data.blog.comments[response.data.blog.comments.length - 1]
         setComments([response.data.newComment, ...comments])
         setCommentContent("")
         fetchSingleBlog()
@@ -271,9 +273,6 @@ const { toast } = useToast()
           title: "Comment Added",
           description: "Your comment has been added successfully",
         })
-
-        // Refresh the blog data to get updated comments
-        
       }
     } catch (error) {
       console.error("Error adding comment:", error)
@@ -297,7 +296,6 @@ const { toast } = useToast()
       </div>
     )
   }
-// console.log("Check ",comments[2].commenterId===currentUserId)
   return (
     <div className="min-h-screen bg-[#1E1C26] text-gray-200">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -353,13 +351,13 @@ const { toast } = useToast()
           <div className="flex gap-4">
             <Button
               variant="ghost"
-              className={`text-gray-400 hover:text-white ${liked ? "text-red-500 hover:text-red-600" : ""}`}
+              className={`text-gray-400 cursor-pointer  ${liked ? "text-red-500" : ""}`}
               onClick={handleLikeToggle}
             >
               <Heart className={`mr-2 h-5 w-5 ${liked ? "fill-current" : ""}`} />
               {blog.likes?.length || 0}
             </Button>
-            <Button variant="ghost" className="text-gray-400 hover:text-white">
+            <Button variant="ghost" className="text-gray-400 cursor-pointer">
               <MessageSquare className="mr-2 h-5 w-5" />
               {blog.comments?.length || 0}
             </Button>
@@ -368,7 +366,7 @@ const { toast } = useToast()
           <div className="flex gap-2">
             <Button
               variant="ghost"
-              className="text-gray-400 hover:text-white"
+              className="text-gray-400 cursor-pointer"
               onClick={() => {
                 navigator.clipboard.writeText(window.location.href)
                 toast({
@@ -381,7 +379,7 @@ const { toast } = useToast()
             </Button>
             <Button
               variant="ghost"
-              className={`text-gray-400 hover:text-white ${bookmarked ? "text-purple-500 hover:text-purple-600" : ""}`}
+              className={`text-gray-400 cursor-pointer ${bookmarked ? "text-purple-500 hover:text-purple-600" : ""}`}
               onClick={() => setBookmarked(!bookmarked)}
             >
               <Bookmark className={`h-5 w-5 ${bookmarked ? "fill-current" : ""}`} />
@@ -546,7 +544,7 @@ const { toast } = useToast()
                         <UserAvatar
                           user={{
                             avatar: comment.commenterAvatar,
-                            name: comment.commenterId==currentUserId ?  "YOU" : comment.commenterUserName,
+                            name: comment.commenterId == currentUserId ? "YOU" : comment.commenterUserName,
                           }}
                           size="sm"
                         />
@@ -555,9 +553,9 @@ const { toast } = useToast()
                             <div>
                               <span
                                 className="font-medium text-white cursor-pointer hover:underline"
-                                onClick={() => comment.commenterId==currentUserId ?  router.push(`/profile`) : router.push(`/profile/${comment.commenterUserName}`)}
+                                onClick={() => comment.commenterId == currentUserId ? router.push(`/profile`) : router.push(`/profile/${comment.commenterUserName}`)}
                               >
-                                {comment.commenterId==currentUserId ?  "YOU" : comment.commenterUserName}
+                                {comment.commenterId == currentUserId ? "YOU" : comment.commenterUserName}
                               </span>
                               <span className="text-gray-400 text-xs ml-2">{timeAgo}</span>
                             </div>
