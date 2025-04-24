@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { supabase } from "@/lib/supabaseClient"
 import { Eye, EyeOff, Upload, User, Mail, Lock, FileImage, FileText } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function RegisterPage() {
   const [userName, setUserName] = useState<string | null>("")
@@ -25,6 +26,7 @@ export default function RegisterPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const router = useRouter()
+  const {toast }= useToast()
 
   const handleImageChangeAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
@@ -87,9 +89,9 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
+  
     try {
-      const response = await axios.post("http://localhost:3005/auth/register", {
+      const response = await axios.post("https://study-mate-ai-server.vercel.app/auth/register", {
         userName,
         email,
         password,
@@ -98,17 +100,34 @@ export default function RegisterPage() {
         bio,
         name,
       })
-
-      alert("User Successfully Registered")
-      console.log(response.data)
-      router.push("/login")
-    } catch (error) {
-      alert("Error in Registering")
-      console.log("Error ", error)
+  
+      toast({
+        title: "Registered Successfully",
+        description: "User registered successfully!",
+        variant: "success",
+      })
+  
+      // Save login info
+      localStorage.setItem("isLogin", "true")
+      localStorage.setItem("userId", response.data.user._id)
+      document.cookie = "isLogin=true; path=/"
+  
+      router.push("/dashboard")
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.error || "Something went wrong!"
+  
+      toast({
+        title: "Registration Failed",
+        description: errorMessage,
+        variant: "destructive",
+      })
+  
+      console.error("Registration Error:", errorMessage)
     }
-
+  
     setIsLoading(false)
   }
+  
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#1E1C26] p-4">

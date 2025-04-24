@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,17 +12,17 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
-
   const handleLogin = async () => {
     try {
       const response = await axios.post("https://study-mate-ai-server.vercel.app/auth/login", {
         email,
         password
       });
-      alert("User successfully logged in");
-      router.push("/");
+
+      router.push("/dashboard");
       localStorage.setItem("isLogin", response.data.isLogin);
       localStorage.setItem("userId", response.data.userId);
+      document.cookie = "isLogin=true; path=/"
     } catch (error) {
       alert("Error in logging in");
       console.error(error);
@@ -72,15 +71,15 @@ export default function LoginPage() {
         <CardFooter>
           <Button
             onClick={handleLogin}
-            className="cursor-pointer w-full bg-white text-black hover:bg-gray-200"
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white cursor-pointer"
           >
             Sign in
           </Button>
         </CardFooter>
         <div className="px-6 pb-4 text-center text-sm text-gray-400">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-white hover:underline">
-            Create account
+          <Link href="/register" className="text-purple-400 hover:text-purple-300 hover:underline">
+            Sign up / Register
           </Link>
         </div>
       </Card>

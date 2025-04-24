@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar, Tag, ArrowLeft, Heart, MessageSquare, Share2, Bookmark, User, Users } from "lucide-react"
 import UserAvatar from "@/components/ui/useAvatar"
 import axios from "axios"
-import { toast } from "@/components/ui/use-toast"
+import {  useToast } from "@/components/ui/use-toast"
 import { Textarea } from "@/components/ui/textarea"
 import { formatDistanceToNow } from "date-fns"
 
@@ -77,12 +77,12 @@ export default function BlogPostPage() {
     const userId = localStorage.getItem("userId")
     setCurrentUserId(userId)
   }, [])
-
+const { toast } = useToast()
   // Fetch author data
   const fetchAuthor = useCallback(async () => {
     if (!userName) return
     try {
-      const response = await axios.get(`http://localhost:3005/${userName}/viewProfile`)
+      const response = await axios.get(`https://study-mate-ai-server.vercel.app/${userName}/viewProfile`)
       const authorData = response.data.user
       setAuthor(authorData)
 
@@ -111,7 +111,7 @@ export default function BlogPostPage() {
     if (!currentUserId) return;
     try {
       const response = await axios.get(
-        `http://localhost:3005/${currentUserId}/getUser`
+        `https://study-mate-ai-server.vercel.app/${currentUserId}/getUser`
       );
       setUser(response.data.user);
       console.log(response.data.user);
@@ -135,7 +135,7 @@ export default function BlogPostPage() {
   const fetchSingleBlog = useCallback(async () => {
     if (!id) return
     try {
-      const response = await axios.get(`http://localhost:3005/${id}/getSingleBlog`)
+      const response = await axios.get(`https://study-mate-ai-server.vercel.app/${id}/getSingleBlog`)
       const blogData = response.data.blogs
       setBlog(blogData)
       setUserName(blogData.authorName)
@@ -173,7 +173,7 @@ export default function BlogPostPage() {
 
     try {
       const endpoint = isFollowing ? "unfollow" : "follow"
-      const response = await axios.post(`http://localhost:3005/users/${author._id}/${endpoint}`, {
+      const response = await axios.post(`https://study-mate-ai-server.vercel.app/users/${author._id}/${endpoint}`, {
         followerId: currentUserId,
       })
 
@@ -210,7 +210,7 @@ export default function BlogPostPage() {
     }
 
     try {
-      const response = await axios.put(`http://localhost:3005/${blog._id}/toggle-like`, {
+      const response = await axios.put(`https://study-mate-ai-server.vercel.app/${blog._id}/toggle-like`, {
         likerId: currentUserId,
       })
 
@@ -255,7 +255,7 @@ export default function BlogPostPage() {
 
     try {
       // Using the route you provided
-      const response = await axios.put(`http://localhost:3005/${blog.authorId}/add-comment/${blog._id}`, {
+      const response = await axios.put(`https://study-mate-ai-server.vercel.app/${blog.authorId}/add-comment/${blog._id}`, {
         commenterId: currentUserId,
         content: commentContent,
       })

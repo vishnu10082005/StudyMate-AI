@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { MessageSquare, Map, CheckSquare, FileText, Edit, Grid3X3, List, LogOut, LogOutIcon } from "lucide-react"
+import { MessageSquare, Map, CheckSquare, FileText, Edit, Grid3X3, List, LogOut, LogOutIcon, SquareDashedBottom, SquareDashedBottomCode, BookDashedIcon } from "lucide-react"
 import BlogCard from "@/components/ui/blog-card"
 import axios from "axios"
 import UserAvatar from "@/components/ui/useAvatar"
@@ -73,7 +73,7 @@ export default function ProfilePage() {
     if (!userId) return;
     try {
       const response = await axios.get(
-        `http://localhost:3005/${userId}/getUser`
+        `https://study-mate-ai-server.vercel.app/${userId}/getUser`
       );
       setUser(response.data.user);
       console.log(response.data.user);
@@ -107,7 +107,7 @@ export default function ProfilePage() {
           <div className="flex-grow">
             <h1 className="text-3xl font-bold text-white mb-1">{user?.name}</h1>
             <p className="text-gray-400 mb-2">
-              {user?.userName} · {user?.joinDate}
+              @{user?.userName} · {user?.joinDate}
             </p>
             <p className="text-gray-300 max-w-2xl mb-4">{user?.bio}</p>
 
@@ -142,6 +142,10 @@ export default function ProfilePage() {
             <Button variant="outline" className="border-[#323042] bg-[#252330] hover:bg-[#2A2838] hover:text-white cursor-pointer" onClick={() => setIsEditModalOpen(true)}>
               <Edit className="h-4 w-4 mr-2" />
               Edit Profile
+            </Button>
+            <Button variant="outline" className="border-[#323042] bg-[#252330] hover:bg-[#2A2838] hover:text-white cursor-pointer" onClick={() => router.push("/dashboard")}>
+              <BookDashedIcon className="h-4 w-4 mr-2" />
+              Dashboard
             </Button>
             <Button variant="outline" className="border-[#323042] bg-[#252330] hover:bg-[#2A2838] hover:text-white cursor-pointer hover:bg-red-500" onClick={() => {
                 localStorage.removeItem("isLogin")

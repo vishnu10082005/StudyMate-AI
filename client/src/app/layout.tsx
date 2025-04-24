@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ToastProvider } from "@/components/ui/use-toast";
 
 export const metadata: Metadata = {
   title: "Study Mate AI",
@@ -13,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" cz-shortcut-listen="true">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased"> <ToastProvider>{children}</ToastProvider></body>
     </html>
   );
 }

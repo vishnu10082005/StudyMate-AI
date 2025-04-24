@@ -11,6 +11,8 @@ import authRoute from "./APIRoutes/authRoute.js";
 import userRouter from "./APIRoutes/userRoutes.js";
 import blogRouter from "./APIRoutes/routes.js";
 import todoRouter from "./APIRoutes/todoRoutes.js";
+import razorrouter from "./APIRoutes/razorroutes.js";
+import resetrouter from "./APIRoutes/resetSummary.js";
 dotenv.config();
 
 const app = express();
@@ -36,7 +38,9 @@ connectDB();
 app.use("/auth", authRoute);
 app.use(userRouter);
 app.use(blogRouter)
-app.use("/todos",todoRouter)
+app.use("/todos", todoRouter)
+app.use(razorrouter)
+app.use(resetrouter)
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINIAI_API_KEY });
 const genAI = new GoogleGenerativeAI(process.env.GEMINIAI_API_KEY);
 
@@ -55,84 +59,119 @@ app.post("/:userId/summarize", async (req, res) => {
   try {
     const { image, content, title } = req.body;
     const userId = req.params.userId;
+    const summaryType = req.query.summaryType || "normal";
+
     if (!userId) {
       return res.status(400).json({ error: "User ID is required" });
     }
 
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    /* ------------------------------------------------------------------ */
+    /*  SMART‑SUMMARY CREDIT CHECK                                        */
+    /* ------------------------------------------------------------------ */
+    if (summaryType === "smart" && !user.isPro) {
+      if (user.smartSummaries <= 0) {
+        return res.status(403).json({
+          error:
+            "Smart‑summary limit reached. Upgrade to Pro for unlimited summaries.",
+        });
+      }
+      user.smartSummaries -= 1;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  SYSTEM RULE: polite greeting                                      */
+    /* ------------------------------------------------------------------ */
+    const systemRule =
+      "RULE: If the user message is **only** a greeting " +
+      "(hi, hello, hey, good morning, good evening, namaste, etc.), " +
+      'reply exactly with: "Welcome to StudyMate AI! How can I help you today?" ' +
+      "in a friendly, humble tone. Otherwise ignore this rule and follow the " +
+      "additional instructions below.\n\n";
+
     let summaryText = "";
     let chatMessages = [];
-    
     if (content && !image) {
+      const prompt =
+        systemRule +
+        (summaryType === "smart"
+          ? `${content}\nSummarize with deep understanding, highlighting key insights, emotions and concepts. Use bullet format with newline (\\n) after each point. Do **not** use markdown/bold (**).`
+          : `${content}\nSummarize in one paragraph, each point separated by newline (\\n). Do **not** use markdown/bold (**).`);
+
       const response = await ai.models.generateContent({
         model: "gemini-2.0-flash",
-        contents: `${content} 
-        Please format the response in a single paragraph where each point is separated by a newline character ('\\n').`,
+        contents: prompt,
       });
-      summaryText = response.candidates?.[0]?.content?.parts?.[0]?.text || "Failed to generate summary";
+
+      summaryText =
+        response.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "Failed to generate summary";
     }
     else if (image) {
       const base64Image = await imageUrlToBase64(image);
-      if (!base64Image) {
-        return res.status(500).json({ error: "Failed to convert image to base64" });
-      }
+      if (!base64Image)
+        return res.status(500).json({ error: "Failed to convert image." });
+
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-      const serverPrompt = `Summarize the content of this image where each point is separated by a newline character ('\\n')`;
+
+      const serverPrompt =
+        systemRule +
+        (summaryType === "smart"
+          ? "Smartly summarise this image: deep insights, context and highlights. Each point newline‑separated (\\n). No markdown/bold."
+          : "Summarise this image in simple newline‑separated points (\\n). No markdown/bold.");
+
       const imagePart = {
-        inlineData: {
-          data: base64Image,
-          mimeType: "image/jpeg",
-        },
+        inlineData: { data: base64Image, mimeType: "image/jpeg" },
       };
-      const generatedContent = await model.generateContent([serverPrompt, imagePart]);
-      summaryText = generatedContent.response.text() || "Failed to generate summary";
-    }
-    else {
-      return res.status(400).json({ error: "Please provide either an image or content." });
+
+      const generated = await model.generateContent([serverPrompt, imagePart]);
+      summaryText = generated.response.text() || "Failed to generate summary";
     }
 
+    else {
+      return res
+        .status(400)
+        .json({ error: "Please provide either an image or content." });
+    }
     chatMessages.push({ role: "user", content: content || "", image: image || "" });
     chatMessages.push({ role: "bot", content: summaryText });
 
-    
-    let generatedTitle = title; 
-    
+    let generatedTitle = title;
     if (title === "New Chat") {
-      const titlePrompt = `Generate a short 3-4 word and exact title for this conversation it should relevant to this what is the topic mentiond in this : ${summaryText}`;
+      const titlePrompt =
+        systemRule +
+        `Generate a short (3‑4 word) plain‑text title relevant to: ${summaryText}`;
       const titleResponse = await ai.models.generateContent({
         model: "gemini-2.0-flash",
         contents: titlePrompt,
       });
-      generatedTitle = titleResponse.candidates?.[0]?.content?.parts?.[0]?.text.trim() || "Untitled Chat";
+      generatedTitle =
+        titleResponse.candidates?.[0]?.content?.parts?.[0]?.text.trim() ||
+        "Untitled Chat";
     }
 
-    let user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    let existingChat = user.userChats.find(chat => chat.title === title);
-
+    const existingChat = user.userChats.find((c) => c.title === title);
     if (existingChat) {
       existingChat.messages.push(...chatMessages);
     } else {
-      user.userChats.push({
-        title: generatedTitle,
-        messages: chatMessages,
-      });
+      user.userChats.push({ title: generatedTitle, messages: chatMessages });
     }
 
     await user.save();
 
-    res.json({ 
-      user: user, 
-      chatTitle: generatedTitle, // Send back the actual title used
-      ResponseText: summaryText 
+    return res.json({
+      user,
+      chatTitle: generatedTitle,
+      ResponseText: summaryText,
     });
-  } catch (error) {
-    console.error("Error:", error);
+  } catch (err) {
+    console.error("summarize route error:", err);
     res.status(500).json({ error: "Something went wrong!" });
   }
 });
+
 
 
 app.post("/:userId/mindMap", async (req, res) => {
@@ -180,19 +219,32 @@ app.post("/:userId/mindMap", async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    user.userMindMaps.push({
-      title: `Mind Map for ${content.content}`,
-      mindMaps: mindMapData,
-    });
-
+    if (!user.isPro && user.monthlymindMaps > 0) {
+      user.userMindMaps.push({
+        title: `Mind Map for ${content.content}`,
+        mindMaps: mindMapData,
+      });
+      user.monthlymindMaps -= 1;
+      console.log("MindMaps Remaining ",user.monthlymindMaps)
+    }
+    else if (user.isPro) {
+      user.userMindMaps.push({
+        title: `Mind Map for ${content.content}`,
+        mindMaps: mindMapData,
+      });
+    }
+    
+    
+    console.log("MindMaps Remaining ",user.monthlymindMaps)
     await user.save();
-
+    console.log(user);
     return res.status(200).json({
       success: true,
       message: "Mind map saved successfully",
       mindMapData,
       latestOne: user.userMindMaps.length - 1,
       allMindMaps: user.userMindMaps
+
     });
 
   } catch (error) {
@@ -214,6 +266,21 @@ app.get("/:userId/getChats", async (req, res) => {
     }
 
     res.status(200).json(user.userChats);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+    console.log("Error ", error)
+  }
+});
+app.get("/:userId/getAllMindMaps", async (req, res) => {
+  console.log("user Id ", req.params.id);
+  try {
+    const user = await User.findById(req.params.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({allMindMaps: user.userMindMaps});
   } catch (error) {
     res.status(500).json({ message: error.message });
     console.log("Error ", error)

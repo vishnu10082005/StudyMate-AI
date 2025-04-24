@@ -65,6 +65,7 @@ const BlogPostSchema = new mongoose.Schema({
 
 const TitleSchema = new mongoose.Schema({
   title: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
   messages: [MessageSchema],
 })
 
@@ -76,8 +77,8 @@ const UserSchema = new mongoose.Schema({
   userMindMaps: [MindMapSchema],
   name: { type: String },
   bio: { type: String },
-  avatar: { type: String, default: "/placeholder.svg?height=200&width=200" },
-  coverImage: { type: String, default: "/placeholder.svg?height=400&width=1200" },
+  avatar: { type: String, default: "https://img.freepik.com/premium-vector/round-gray-circle-with-simple-human-silhouette-light-gray-shadow-around-circle_213497-4963.jpg?w=740" },
+  coverImage: { type: String, default: "https://img.freepik.com/premium-vector/round-gray-circle-with-simple-human-silhouette-light-gray-shadow-around-circle_213497-4963.jpg?w=740" },
   registeredAt: {
     type: Date,
     default: Date.now,
@@ -88,12 +89,18 @@ const UserSchema = new mongoose.Schema({
       return `Member since ${new Date(this.registeredAt).getFullYear()}`
     },
   },
-  isPro : {type:Boolean, default:false},
+  isPro: { type: Boolean, default: false },
+  userCredits: { type: Number, default: 25 },
+  protype: { type: String, default: "free" },
   userBlogs: [BlogPostSchema],
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "BlogPost" }],
   userTodos: [TodoSchema],
+  smartSummaries: { type: Number, default: 5 },
+  monthlymindMaps: { type: Number, default: 5 },
+  monthlyBlogs: { type: Number, default: 5 }
+
 })
 
 const User = mongoose.model("User", UserSchema)

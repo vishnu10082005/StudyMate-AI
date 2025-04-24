@@ -55,6 +55,9 @@ export default function MainPage() {
             <Link href="/pricing" className="hover:text-purple-400 transition-colors">
               Pricing
             </Link>
+            <Link href="/dashboard" className="hover:text-purple-400 transition-colors">
+              Dashboard
+            </Link>
           </nav>
 
           <div className="hidden md:block">
@@ -78,7 +81,6 @@ export default function MainPage() {
           </button>
         </div>
 
-        {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden bg-[#2A2833] absolute top-full left-0 w-full border-t border-gray-800">
             <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
@@ -129,9 +131,9 @@ export default function MainPage() {
         )}
       </header>
 
-      {/* Hero Section with Background Image */}
+
       <section className="relative w-full h-screen flex justify-center items-center overflow-hidden">
-        {/* Background Image - Only for Hero Section */}
+
         <div className="absolute inset-0 z-0">
           <div
             className="w-full h-full bg-no-repeat bg-center bg-cover"
@@ -145,20 +147,17 @@ export default function MainPage() {
           <div className="absolute inset-0 bg-[#1E1C26]/30 backdrop-filter backdrop-blur-[1px]"></div>
         </div>
 
-        {/* Hero Content */}
         <div className="relative z-10 w-full pt-24">
           <AIHeroSection />
         </div>
       </section>
 
-      {/* About Section - No Background Image */}
       <section id="about" className="w-full bg-[#1E1C26]">
         <About />
       </section>
 
-      {/* Features Section - Updated to match dark theme */}
       <section className="bg-[#1E1C26] py-20 relative overflow-hidden">
-        {/* Animated background elements */}
+
         <div className="absolute top-20 left-1/4 w-72 h-72 bg-purple-600/10 rounded-full filter blur-[100px] animate-blob"></div>
         <div className="absolute bottom-40 right-1/4 w-72 h-72 bg-pink-600/10 rounded-full filter blur-[100px] animate-blob animation-delay-2000"></div>
 

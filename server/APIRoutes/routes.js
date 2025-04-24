@@ -53,11 +53,21 @@ blogRouter.post("/:userId/postBlog", async (req, res) => {
       authorAvatar: user.avatar,
     };
     // Save to Blogs collection
-    const newPost = new Blogs(post);
-    await newPost.save();
+    if (!user.isPro && user.monthlyBlogs > 0) {
+      const newPost = new Blogs(post);
+      await newPost.save();
 
-    user.userBlogs.push(post);
-    await user.save();
+      user.userBlogs.push(post);
+      user.monthlyBlogs -=1 ;
+      await user.save();
+    }
+    else if(user.isPro){
+      const newPost = new Blogs(post);
+      await newPost.save();
+      user.userBlogs.push(post);
+      await user.save();
+    }
+
 
     res.status(200).json({
       userBlogs: user.userBlogs,
@@ -125,7 +135,7 @@ blogRouter.put("/update-author-details/:userId", async (req, res) => {
 
     // Step 3: Update userBlogs inside User schema
     user.userBlogs = user.userBlogs.map((blog) => ({
-      ...blog.toObject(), 
+      ...blog.toObject(),
       ...updatedFields
     }));
     await user.save();
