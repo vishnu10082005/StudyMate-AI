@@ -1,7 +1,7 @@
-import User from "../schema/User.js";
+import User from "../Schema/User.js";
 import express from "express";
 import mongoose from "mongoose";
-import Blogs from "../schema/Blog.js";
+import Blogs from "../Schema/Blog.js";
 
 const userRouter = express.Router();
 userRouter.get("/:userId/getUser", async (req, res) => {

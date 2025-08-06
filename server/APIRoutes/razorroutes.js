@@ -2,7 +2,7 @@ import express from "express"
 import crypto from "crypto"
 import Payment from "../Razorpay/Razorschema.js"
 import razorpay from "razorpay"
-import User from "../schema/User.js"
+import User from "../Schema/User.js"
 const razorrouter = express.Router()
 
 const instance = new razorpay({

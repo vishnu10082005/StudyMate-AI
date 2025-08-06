@@ -1,6 +1,6 @@
-import User from "../schema/User.js";
+import User from "../Schema/User.js";
 import express from "express";
-import Blogs from "../schema/Blog.js";
+import Blogs from "../Schema/Blog.js";
 import mongoose from "mongoose";
 
 const blogRouter = express.Router();

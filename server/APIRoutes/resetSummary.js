@@ -1,5 +1,5 @@
 import express from "express"
-import User from "../schema/User.js"
+import User from "../Schema/User.js"
 
 const resetrouter = express.Router()
 

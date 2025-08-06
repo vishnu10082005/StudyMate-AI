@@ -5,7 +5,7 @@ import axios from "axios";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
-import User from "./schema/User.js";
+import User from "./Schema/User.js";
 import connectDB from "./DatabaseConnection/dbConnection.js";
 import authRoute from "./APIRoutes/authRoute.js";
 import userRouter from "./APIRoutes/userRoutes.js";
