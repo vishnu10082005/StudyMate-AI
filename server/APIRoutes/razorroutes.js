@@ -2,7 +2,7 @@ import express from "express"
 import crypto from "crypto"
 import Payment from "../Razorpay/Razorschema.js"
 import razorpay from "razorpay"
-import User from "../schema/User.js"
+import User from "../Schema/User.js"
 const razorrouter = express.Router()
 
 const instance = new razorpay({
@@ -23,7 +23,6 @@ razorrouter.post("/checkout/:userId", async (req, res) => {
         planType: protype,
       },
     }
-    // We'll update the user status after successful payment verification
     const order = await instance.orders.create(options)
     res.status(200).json({ success: true, order })
   } catch (error) {

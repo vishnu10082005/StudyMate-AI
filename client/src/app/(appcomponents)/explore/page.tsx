@@ -32,6 +32,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import axios from "axios"
+import { useToast } from "@/components/ui/use-toast"
 
 interface Blog {
   _id: string
@@ -60,14 +61,12 @@ export default function ExplorePage() {
   const [userId, setUserId] = useState<string | null>("")
   const [allPosts, setAllPosts] = useState<Blog[]>([])
   const [uniqueCategories, setUniqueCategories] = useState<{ name: string; count: number }[]>([])
-
-  // Load user ID from localStorage
+  const {toast}=useToast();
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId")
     setUserId(storedUserId)
   }, [])
 
-  // Fetch all blogs
   const fetchAllBlogs = useCallback(async () => {
     if (!userId) return
     setIsLoading(true)
@@ -75,8 +74,6 @@ export default function ExplorePage() {
       const response = await axios.get(`https://study-mate-ai-server.vercel.app/getAllBlogs`)
       const blogs = response.data.blogs
       setAllPosts(blogs)
-
-      // Extract unique categories and count posts in each category
       const categories = blogs.reduce((acc: Record<string, number>, blog: Blog) => {
         if (blog.category) {
           acc[blog.category] = (acc[blog.category] || 0) + 1
@@ -84,7 +81,6 @@ export default function ExplorePage() {
         return acc
       }, {})
 
-      // Convert to array format needed for UI
       const categoryArray = Object.entries(categories).map(([name, count]) => ({
         name,
         count: count as number,
@@ -104,7 +100,6 @@ export default function ExplorePage() {
     }
   }, [userId, fetchAllBlogs])
 
-  // Get category from URL if present
   useEffect(() => {
     const category = searchParams.get("category")
     if (category) {
@@ -112,7 +107,6 @@ export default function ExplorePage() {
     }
   }, [searchParams])
 
-  // Toggle category selection
   const toggleCategory = (category: string) => {
     if (selectedCategories.includes(category)) {
       setSelectedCategories(selectedCategories.filter((c) => c !== category))
@@ -121,33 +115,27 @@ export default function ExplorePage() {
     }
   }
 
-  // Set a single category (for quick filters)
   const setSingleCategory = (category: string) => {
     setSelectedCategories([category])
   }
 
-  // Clear all filters
   const clearFilters = () => {
     setSelectedCategories([])
     setSortBy("newest")
     setSearchQuery("")
   }
 
-  // Filter and sort posts based on user selections
   const filteredPosts = allPosts
     .filter((post) => {
-      // Filter by search query
       if (searchQuery && !post.title?.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false
       }
-      // Filter by selected categories
       if (selectedCategories.length > 0 && !selectedCategories.includes(post.category)) {
         return false
       }
       return true
     })
     .sort((a, b) => {
-      // Sort posts
       switch (sortBy) {
         case "newest":
           return new Date(b.dateOfPost).getTime() - new Date(a.dateOfPost).getTime()
@@ -162,14 +150,11 @@ export default function ExplorePage() {
       }
     })
 
-  // Handle search submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    // You would typically update the URL or fetch new data here
     console.log("Searching for:", searchQuery)
   }
 
-  // Use dynamic categories if available, otherwise fallback to static ones
   const categories =
     uniqueCategories.length > 0
       ? uniqueCategories
@@ -216,7 +201,6 @@ export default function ExplorePage() {
           </form>
         </div>
 
-        {/* Active filters display */}
         {(selectedCategories.length > 0 || sortBy !== "newest") && (
           <div className="flex flex-wrap items-center gap-2 mb-4">
             <span className="text-sm text-gray-400">Active filters:</span>
@@ -247,7 +231,6 @@ export default function ExplorePage() {
           </div>
         )}
 
-        {/* Filters panel */}
         {showFilters && (
           <Card className="bg-[#252330] border-[#323042] mb-6">
             <CardContent className="p-6">
@@ -388,7 +371,7 @@ export default function ExplorePage() {
                 className={`whitespace-nowrap ${
                   selectedCategories.includes(category.name)
                     ? "bg-purple-600 hover:bg-purple-700 border-purple-600 text-white"
-                    : "bg-[#252330] border-[#323042] text-gray-300 hover:bg-[#2A2838]"
+                    : "bg-[#252330] border-[#323042] text-gray-300 hover:bg-[#2A2838] hover:text-gray-400"
                 }`}
                 onClick={() => setSingleCategory(category.name)}
               >

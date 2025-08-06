@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { ArrowLeft, Upload, ImageIcon, Save, X } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
 import axios from "axios"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function CreateBlogPage() {
   const router = useRouter()
@@ -21,6 +22,7 @@ export default function CreateBlogPage() {
   const [category, setCategory] = useState("")
   const [image, setImage] = useState("")
   const [readTime, setReadTime] = useState("")
+  const {toast}= useToast();
   const removeImage = () => {
     setImage("")
   }
@@ -64,12 +66,18 @@ export default function CreateBlogPage() {
       const response = await axios.post(`https://study-mate-ai-server.vercel.app/${id}/postBlog`, {
         title, content, image, readTime, category
       })
-      console.log(response);
-      alert("Blog Posted");
-      // Redirect to blog list after successful creation
+      toast({
+        title: "Success",
+        description: "Blog Posted Successfully",
+        variant: "success",
+      })
       router.push("/blog")
     } catch (error) {
-      alert("Error in posting")
+      toast({
+        title: "Failed",
+        description: "Error in posting blog , Please try again by refreshing",
+        variant: "destructive",
+      })
       console.log("Error ",error)
     }
 

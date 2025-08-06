@@ -31,7 +31,6 @@ export default function About() {
                   className="absolute inset-0 w-full h-full object-cover"
 
                 />
-                {/* Subtle color overlay on hover */}
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-900/0 via-violet-900/0 to-pink-900/0 
       group-hover:via-violet-900/20 group-hover:to-pink-900/10 transition-all duration-500 pointer-events-none" />
               </div>
@@ -93,7 +92,6 @@ export default function About() {
         <>
 
           <div className="grid grid-cols-2 gap-4 relative">
-            {/* Floating Sparkles Background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               {[...Array(20)].map((_, i) => (
                 <div
@@ -115,7 +113,6 @@ export default function About() {
               ))}
             </div>
 
-            {/* Mind Maps Card */}
             <div className="relative aspect-[560/460] overflow-hidden rounded-lg bg-gradient-to-br from-purple-900/30 to-indigo-900/20 border border-white/10 p-6 shadow-lg hover:shadow-[0_0_28px_rgba(167,139,250,0.6)] hover:border-purple-400/50 hover:scale-[1.02] transition-all duration-300 group z-10">
               <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay"></div>
               <div className="flex flex-col h-full relative">
@@ -136,14 +133,12 @@ export default function About() {
                   </div>
                 </div>
               </div>
-              {/* Animated Sparkle Burst */}
               <div className="absolute -right-2 -top-2 w-16 h-16 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                 <div className="absolute inset-0 bg-purple-500 rounded-full blur-md animate-ping"></div>
                 <div className="absolute inset-1 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"></div>
               </div>
             </div>
 
-            {/* Smart Summaries Card */}
             <div className="relative aspect-[560/460] overflow-hidden rounded-lg bg-gradient-to-br from-blue-900/30 to-cyan-900/20 border border-white/10 p-6 shadow-lg hover:shadow-[0_0_28px_rgba(103,232,249,0.5)] hover:border-cyan-400/50 hover:scale-[1.02] transition-all duration-300 group z-10">
               <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay"></div>
               <div className="flex flex-col h-full">
@@ -164,7 +159,6 @@ export default function About() {
                   </div>
                 </div>
               </div>
-              {/* Floating Binary Code Animation */}
               <div className="absolute bottom-2 right-2 text-[8px] text-cyan-400/30 font-mono opacity-0 group-hover:opacity-100 transition-opacity duration-700">
                 {Array(5).fill(0).map((_, i) => (
                   <div key={i} className="animate-float" style={{ animationDelay: `${i * 0.2}s` }}>
@@ -201,7 +195,6 @@ export default function About() {
               </div>
             </div>
 
-            {/* Smart Notes Card */}
             <div className="relative aspect-[560/460] overflow-hidden rounded-lg bg-gradient-to-br from-pink-900/30 to-rose-900/20 border border-white/10 p-6 shadow-lg hover:shadow-[0_0_28px_rgba(244,114,182,0.5)] hover:border-pink-400/50 hover:scale-[1.02] transition-all duration-300 group z-10">
               <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10 mix-blend-overlay"></div>
               <div className="flex flex-col h-full">
@@ -211,19 +204,18 @@ export default function About() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg md:text-xl font-semibold text-white mb-2">Smart Notes</h3>
+                  <h3 className="text-lg md:text-xl font-semibold text-white mb-2">Smart Todo's</h3>
                   <p className="text-gray-300 text-sm md:text-base">
-                    AI that doesn&apos;t just record but enhances your notes - fixing errors, adding references, and predicting what comes next.
+                    Create the todo for daily purposes and track your progress and review your progress, this record  enhances your progess - fixing errors, adding references, and predicts what to do next.
                   </p>
 
                 </div>
                 <div className="mt-4">
                   <div className="text-xs text-pink-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    ✨ AI Magic: Auto-generates flashcards from your notes
+                    ✨ AI Magic: Auto-generates the review of todays work and suggests what to do to improve or what could be improved from your daily work
                   </div>
                 </div>
               </div>
-              {/* Floating Hearts Animation */}
               <div className="absolute top-4 right-4 text-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                 {['❤️', '🧠', '✨', '🤖'].map((emoji, i) => (
                   <div

@@ -364,7 +364,7 @@ export default function UserProfilePage() {
             <div className="flex">
               <Button
                 variant="outline"
-                className="border-[#323042] bg-[#252330] hover:bg-[#2A2838] px-2"
+                className="border-[#323042] bg-[#252330] hover:bg-[#2A2838] hover:text-gray-300 px-2"
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href)
                   toast({
@@ -396,15 +396,9 @@ export default function UserProfilePage() {
 
         <Tabs defaultValue="posts" className="mb-12">
           <div className="flex justify-between items-center mb-6">
-            <TabsList className="bg-[#252330]">
-              <TabsTrigger value="posts" className="data-[state=active]:bg-[#323042]">
+            <TabsList className="bg-[#252330] border border-[#323042]">
+              <TabsTrigger value="posts" className="data-[state=active]:bg-[#323042] text-gray-300 ">
                 Posts
-              </TabsTrigger>
-              <TabsTrigger value="media" className="data-[state=active]:bg-[#323042]">
-                Media
-              </TabsTrigger>
-              <TabsTrigger value="liked" className="data-[state=active]:bg-[#323042]">
-                Liked
               </TabsTrigger>
             </TabsList>
 
@@ -524,40 +518,6 @@ export default function UserProfilePage() {
                 </p>
               </div>
             )}
-          </TabsContent>
-
-          <TabsContent value="media">
-            <div className="text-center py-12">
-              <div className="h-12 w-12 mx-auto text-gray-500 mb-4 flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="48"
-                  height="48"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                  <circle cx="9" cy="9" r="2" />
-                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-medium text-white mb-2">No media posts yet</h3>
-              <p className="text-gray-400 mb-6">
-                When {profileUser.name || profileUser.userName} shares media, it will appear here
-              </p>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="liked">
-            <div className="text-center py-12">
-              <MessageSquare className="h-12 w-12 mx-auto text-gray-500 mb-4" />
-              <h3 className="text-xl font-medium text-white mb-2">No liked posts visible</h3>
-              <p className="text-gray-400 mb-6">Liked posts that are public will appear here</p>
-            </div>
           </TabsContent>
         </Tabs>
       </div>

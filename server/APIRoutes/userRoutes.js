@@ -1,7 +1,7 @@
-import User from "../schema/User.js";
+import User from "../Schema/User.js";
 import express from "express";
 import mongoose from "mongoose";
-import Blogs from "../schema/Blog.js";
+import Blogs from "../Schema/Blog.js";
 
 const userRouter = express.Router();
 userRouter.get("/:userId/getUser", async (req, res) => {
@@ -234,7 +234,7 @@ userRouter.put("/:blogId/toggle-like", async (req, res) => {
 
     const author = await User.findById(blog.authorId);
     if (!author) return res.status(404).json({ message: "Author not found", success: false });
-
+    var isLiked = true
     const alreadyLiked = blog.likes.includes(likerId);
 
     if (alreadyLiked) {
@@ -242,18 +242,19 @@ userRouter.put("/:blogId/toggle-like", async (req, res) => {
       const indexToRemove = author.likes.findIndex(id => id.toString() === blogId);
       if (indexToRemove !== -1) {
         author.likes.splice(indexToRemove, 1);
+        isLiked=false
       }
 
       await blog.save();
       await author.save();
 
-      return res.status(200).json({ message: "Blog unliked successfully", blog, success: true });
+      return res.status(200).json({ message: "Blog unliked successfully", blog, success: true , isLiked });
     } else {
       blog.likes.push(likerId);
       author.likes.push(blog._id);
       await blog.save();
       await author.save();
-      return res.status(200).json({ message: "Blog liked successfully", blog, success: true });
+      return res.status(200).json({ message: "Blog liked successfully", blog, success: true, isLiked });
     }
 
   } catch (error) {

@@ -224,7 +224,7 @@ export default function DashboardPage() {
 
             <FeatureCard
               title="AI Blogs"
-              description="Explore AI-generated educational content"
+              description="Explore Blogs and Create Unlimited blogs of your content"
               icon={<BookOpen className="h-8 w-8 text-amber-400" />}
               href="/blog"
               color="amber"

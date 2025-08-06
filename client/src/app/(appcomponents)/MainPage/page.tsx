@@ -49,7 +49,7 @@ export default function MainPage() {
             <Link href="#about" className="hover:text-purple-400 transition-colors">
               About
             </Link>
-            <Link href="/features" className="hover:text-purple-400 transition-colors">
+            <Link href="#features" className="hover:text-purple-400 transition-colors">
               Features
             </Link>
             <Link href="/pricing" className="hover:text-purple-400 transition-colors">
@@ -57,6 +57,9 @@ export default function MainPage() {
             </Link>
             <Link href="/dashboard" className="hover:text-purple-400 transition-colors">
               Dashboard
+            </Link>
+            <Link href="/explore" className="hover:text-purple-400 transition-colors">
+              Explore Community 
             </Link>
           </nav>
 
@@ -92,7 +95,7 @@ export default function MainPage() {
                 About
               </Link>
               <Link
-                href="/features"
+                href="#features"
                 className="hover:text-purple-400 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -104,6 +107,20 @@ export default function MainPage() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Pricing
+              </Link>
+              <Link
+                href="/dashboard"
+                className="hover:text-purple-400 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/explore"
+                className="hover:text-purple-400 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Explore Community
               </Link>
               {hasMounted &&
                 (isLoggedIn ? (
@@ -224,7 +241,7 @@ export default function MainPage() {
       </section>
 
       {/* More Features Section - Updated to match dark theme */}
-      <section className="bg-[#2A2833] py-20 relative overflow-hidden">
+      <section id="features" className="bg-[#2A2833] py-20 relative overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute top-40 right-1/3 w-72 h-72 bg-blue-600/10 rounded-full filter blur-[100px] animate-blob animation-delay-4000"></div>
         <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-purple-600/10 rounded-full filter blur-[100px] animate-blob"></div>

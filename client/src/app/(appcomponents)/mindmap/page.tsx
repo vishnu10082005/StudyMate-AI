@@ -1,7 +1,6 @@
 "use client"
 import { useState, useEffect, useCallback } from "react"
 import type React from "react"
-
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,7 +12,7 @@ import { MultiStepLoader as Loader } from "@/components/ui/multi-step-loader"
 import { motion } from "framer-motion"
 import { format } from "date-fns"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
+import { useToast } from "@/components/ui/use-toast"
 interface MindMap {
   _id: string
   title: string
@@ -68,7 +67,7 @@ export default function MindMapGenerator() {
   const router = useRouter()
   const [userId, setUserId] = useState<string | null>("");
   const [user, setUser] = useState<UserType | null>(null);
-
+  const {toast}= useToast();
 
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
@@ -122,7 +121,6 @@ export default function MindMapGenerator() {
     },
   ]
 
-  // Fetch user's mind maps
   useEffect(() => {
     const fetchMindMaps = async () => {
       try {
@@ -140,6 +138,11 @@ export default function MindMapGenerator() {
         }
       } catch (err) {
         console.error("Error fetching mind maps:", err)
+        toast({
+        title: "Error in Fetching the Mindmaps",
+        description: "Please Try by reloading the page",
+        variant: "destructive",
+      })
       } finally {
         setIsLoading(false)
       }
@@ -164,25 +167,33 @@ export default function MindMapGenerator() {
         throw new Error("User ID not found. Please log in again.")
       }
 
-      const response = await axios.post(`https://study-mate-ai-server.vercel.app/${userId}/mindMap`, {
+      const response = await axios.post(`http://localhost:3005/${userId}/mindMap`, {
         content: content,
-        title: title.trim() || content.trim(), // Use title if provided, otherwise use content as title
+        title: title.trim() || content.trim(),
       })
-
-      localStorage.setItem("mindMapData", JSON.stringify(response.data.mindMapData))
-      const latestOne = response.data.latestOne
-      const latestId = response.data.allMindMaps[latestOne]._id
-
-      // Add the new mind map to the list
-      if (response.data.allMindMaps && response.data.allMindMaps[latestOne]) {
-        setMindMaps((prev) => [response.data.allMindMaps[latestOne], ...prev])
+      console.log("This is the mindmap data ",response.data);
+      toast({
+        title: "MindMap Generated",
+        description: "Redirecting to mindmap in seconds",
+        variant: "success",
+      })
+      const currentMindMap = response.data.currentMindMap;
+      const latestId = response.data.currentMindMap._id
+      console.log("currentMindMap ",currentMindMap);
+      localStorage.setItem("mindMapData", JSON.stringify(currentMindMap));
+      if (response.data.allMindMaps && response.data.allMindMaps[currentMindMap]) {
+        setMindMaps((prev) => [response.data.allMindMaps[currentMindMap], ...prev])
       }
-
       router.push(`/mindmap/output/${latestId}`)
     } catch (err) {
       console.error("Error generating mind map:", err)
       setError(err instanceof Error ? err.message : "Something went wrong")
       localStorage.setItem("mindMapData", "")
+       toast({
+        title: "Internal Server Error",
+        description: "Error in generating the Mindmaps, Please try after some time",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
@@ -265,7 +276,7 @@ export default function MindMapGenerator() {
                 <CardFooter>
                   {(user?.isPro || (!user?.isPro && (user?.monthlymindMaps ?? 0) > 0)) && (
                     <Button
-                      className="w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white hover:from-indigo-600 hover:to-pink-600"
+                      className="cursor-pointer w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white hover:from-indigo-600 hover:to-pink-600"
                       onClick={handleSubmit}
                       disabled={loading}
                     >
@@ -276,7 +287,7 @@ export default function MindMapGenerator() {
 
                   {!user?.isPro && (user?.monthlymindMaps ?? 0) === 0 && (
                     <Button
-                      className="w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white hover:from-indigo-600 hover:to-pink-600"
+                      className="cursor-pointer w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white hover:from-indigo-600 hover:to-pink-600"
                       onClick={() => {
                         router.push("/pricing");
                       }}
@@ -328,12 +339,12 @@ export default function MindMapGenerator() {
             </div>
 
             {/* Tabs */}
-            <Tabs defaultValue="all" className="mb-6">
+            <Tabs defaultValue="all" className="mb-6 cursor-pointer">
               <TabsList className="bg-[#252330] border border-[#323042]">
-                <TabsTrigger value="all" className="data-[state=active]:bg-[#323042] text-white">
+                <TabsTrigger value="all" className="data-[state=active]:bg-[#323042] text-white cursor-pointer">
                   All Mind Maps
                 </TabsTrigger>
-                <TabsTrigger value="recent" className="data-[state=active]:bg-[#323042] text-white">
+                <TabsTrigger value="recent" className="data-[state=active]:bg-[#323042] cursor-pointer text-white">
                   Recent
                 </TabsTrigger>
               </TabsList>
@@ -368,7 +379,7 @@ export default function MindMapGenerator() {
                 )}
               </TabsContent>
 
-              <TabsContent value="recent">
+              <TabsContent value="recent" >
                 {isLoading ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[1, 2].map((i) => (
@@ -383,7 +394,7 @@ export default function MindMapGenerator() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {filteredMindMaps.slice(0, 4).map((mindMap) => (
+                    {filteredMindMaps.slice(filteredMindMaps.length-5,-1).map((mindMap) => (
                       <MindMapCard key={mindMap._id} mindMap={mindMap} />
                     ))}
                   </div>
@@ -412,7 +423,7 @@ function MindMapCard({ mindMap }: { mindMap: MindMap }) {
       className="cursor-pointer"
       onClick={() => router.push(`/mindmap/output/${mindMap._id}`)}
     >
-      <Card className="bg-[#252330] border-[#323042] hover:border-purple-500/50 transition-colors h-full overflow-hidden">
+      <Card onClick={()=>{localStorage.setItem("mindMapData", JSON.stringify(mindMap))}} className="bg-[#252330] border-[#323042] hover:border-purple-500/50 transition-colors h-full overflow-hidden">
         <div className={`h-2 w-full bg-gradient-to-r ${colorClass}`}></div>
         <CardContent className="p-5">
           <h3 className="text-xl font-semibold text-white mb-2 line-clamp-1">{mindMap.title}</h3>
@@ -516,7 +527,6 @@ function getColorClass(title: string) {
     "from-indigo-500 to-purple-500",
   ]
 
-  // Use the sum of character codes to determine the color
   const sum = title.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
   return colors[sum % colors.length]
 }

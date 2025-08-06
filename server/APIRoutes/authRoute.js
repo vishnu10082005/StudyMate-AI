@@ -1,4 +1,4 @@
-import User from "../schema/User.js";
+import User from "../Schema/User.js";
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
