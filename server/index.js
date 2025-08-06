@@ -14,7 +14,7 @@ import todoRouter from "./APIRoutes/todoRoutes.js";
 import razorrouter from "./APIRoutes/razorroutes.js";
 import resetrouter from "./APIRoutes/resetSummary.js";
 dotenv.config();
-
+// This is the start of the project 
 const app = express();
 const port = 3005;
 const allowedOrigins = [
