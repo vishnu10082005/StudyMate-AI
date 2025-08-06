@@ -63,7 +63,7 @@ export default function CreateBlogPage() {
     console.log({ title, content, category, image ,id})
 
     try {
-      const response = await axios.post(`https://study-mate-ai-server.vercel.app/${id}/postBlog`, {
+      const response = await axios.post(`https://studymate-ai-2gvx.onrender.com/${id}/postBlog`, {
         title, content, image, readTime, category
       })
       toast({

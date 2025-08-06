@@ -71,7 +71,7 @@ export default function ExplorePage() {
     if (!userId) return
     setIsLoading(true)
     try {
-      const response = await axios.get(`https://study-mate-ai-server.vercel.app/getAllBlogs`)
+      const response = await axios.get(`https://studymate-ai-2gvx.onrender.com/getAllBlogs`)
       const blogs = response.data.blogs
       setAllPosts(blogs)
       const categories = blogs.reduce((acc: Record<string, number>, blog: Blog) => {

@@ -61,7 +61,7 @@ export default function Summarizer() {
       const imageUrl = urlData.publicUrl;
       console.log("✅ Public Image URL:", imageUrl);
       
-      const response = await fetch("https://study-mate-ai-server.vercel.app/summarize", {
+      const response = await fetch("https://studymate-ai-2gvx.onrender.com/summarize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageUrl }),

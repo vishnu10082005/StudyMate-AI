@@ -14,7 +14,7 @@ export default function LoginPage() {
   const router = useRouter();
   const handleLogin = async () => {
     try {
-      const response = await axios.post("https://study-mate-ai-server.vercel.app/auth/login", {
+      const response = await axios.post("https://studymate-ai-2gvx.onrender.com/auth/login", {
         email,
         password
       });

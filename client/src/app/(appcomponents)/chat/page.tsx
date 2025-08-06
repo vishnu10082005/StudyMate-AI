@@ -73,7 +73,7 @@ export default function ChatPage() {
   const fetchUserData = useCallback(async () => {
     if (!userId) return
     try {
-      const response = await axios.get(`https://study-mate-ai-server.vercel.app/${userId}/getUser`)
+      const response = await axios.get(`https://studymate-ai-2gvx.onrender.com/${userId}/getUser`)
       setSmartSummaryCount(response.data.user.smartSummaries || 0)
       setIsPro(response.data.user.isPro || false)
       setUserName(response.data.user.userName || "User")
@@ -87,7 +87,7 @@ export default function ChatPage() {
   const fetchChats = useCallback(async () => {
     if (!userId) return
     try {
-      const response = await axios.get(`https://study-mate-ai-server.vercel.app/${userId}/getChats`)
+      const response = await axios.get(`https://studymate-ai-2gvx.onrender.com/${userId}/getChats`)
       setChats(response.data)
     } catch (error) {
       console.error("Error fetching chats:", error)
@@ -168,7 +168,7 @@ export default function ChatPage() {
 
     try {
       const response = await axios.post(
-        `https://study-mate-ai-server.vercel.app/${userId}/summarize?summaryType=${summaryType}`,
+        `https://studymate-ai-2gvx.onrender.com/${userId}/summarize?summaryType=${summaryType}`,
         {
           title: currentTitle,
           content: newMessage.content,

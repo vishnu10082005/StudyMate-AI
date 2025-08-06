@@ -81,7 +81,7 @@ export default function BlogPostPage() {
   const fetchAuthor = useCallback(async () => {
     if (!userName) return
     try {
-      const response = await axios.get(`https://study-mate-ai-server.vercel.app/${userName}/viewProfile`)
+      const response = await axios.get(`https://studymate-ai-2gvx.onrender.com/${userName}/viewProfile`)
       const authorData = response.data.user
       setAuthor(authorData)
 
@@ -108,7 +108,7 @@ export default function BlogPostPage() {
     if (!currentUserId) return;
     try {
       const response = await axios.get(
-        `https://study-mate-ai-server.vercel.app/${currentUserId}/getUser`
+        `https://studymate-ai-2gvx.onrender.com/${currentUserId}/getUser`
       );
       setUser(response.data.user);
       console.log(response.data.user);
@@ -131,7 +131,7 @@ export default function BlogPostPage() {
   const fetchSingleBlog = useCallback(async () => {
     if (!id) return
     try {
-      const response = await axios.get(`https://study-mate-ai-server.vercel.app/${id}/getSingleBlog`)
+      const response = await axios.get(`https://studymate-ai-2gvx.onrender.com/${id}/getSingleBlog`)
       const blogData = response.data.blogs
       setBlog(blogData)
       setUserName(blogData.authorName)
@@ -167,7 +167,7 @@ export default function BlogPostPage() {
 
     try {
       const endpoint = isFollowing ? "unfollow" : "follow"
-      const response = await axios.post(`https://study-mate-ai-server.vercel.app/users/${author._id}/${endpoint}`, {
+      const response = await axios.post(`https://studymate-ai-2gvx.onrender.com/users/${author._id}/${endpoint}`, {
         followerId: currentUserId,
       })
 
@@ -204,7 +204,7 @@ export default function BlogPostPage() {
     }
 
     try {
-      const response = await axios.put(`https://study-mate-ai-server.vercel.app/${blog._id}/toggle-like`, {
+      const response = await axios.put(`https://studymate-ai-2gvx.onrender.com/${blog._id}/toggle-like`, {
         likerId: currentUserId,
       })
 
@@ -260,7 +260,7 @@ export default function BlogPostPage() {
     setIsSubmittingComment(true)
 
     try {
-      const response = await axios.put(`https://study-mate-ai-server.vercel.app/${blog.authorId}/add-comment/${blog._id}`, {
+      const response = await axios.put(`https://studymate-ai-2gvx.onrender.com/${blog.authorId}/add-comment/${blog._id}`, {
         commenterId: currentUserId,
         content: commentContent,
       })

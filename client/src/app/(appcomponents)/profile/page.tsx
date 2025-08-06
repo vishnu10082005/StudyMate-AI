@@ -73,7 +73,7 @@ export default function ProfilePage() {
     if (!userId) return;
     try {
       const response = await axios.get(
-        `https://study-mate-ai-server.vercel.app/${userId}/getUser`
+        `https://studymate-ai-2gvx.onrender.com/${userId}/getUser`
       );
       setUser(response.data.user);
       console.log(response.data.user);
