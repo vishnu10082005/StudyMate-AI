@@ -174,84 +174,121 @@ app.post("/:userId/summarize", async (req, res) => {
 
 
 
+
 app.post("/:userId/mindMap", async (req, res) => {
   try {
     const content = req.body;
-    const userId = req.params.userId;
+    console.log("Request Body:", content);
 
+    const userId = req.params.userId;
     if (!content || !userId) {
       return res.status(400).json({ error: "User ID and content are required" });
     }
 
-    const prompt = `
-      Generate a structured JSON representation of a mind map for the topic: "${content.content}".
-      The main/root node should have the label: "${content.content}". The Mind Map should consists of the Broad data make every node and each and every topic in the clear way and give the every node .
-      Provide relevant subtopics as child nodes. the colors of the nodes and the edges should be uniques and look attractive so select different colors for the different node boxes and the edges . Give me the positions correctly as it is looking clumsy if the data is more or if the nodes are more 
-      Format the response in this JSON structure:
-      
-      {
-        "nodes": [
-          { "id": "1", "data": { "label": "${content.content}" }, "position": { "x": 250, "y": 0 }, "style": { "background": "#6D28D9", "color": "#fff", "border": "2px solid #4C1D95", "borderRadius": "10px", "padding": "10px" } }
-        ],
-        "edges": [
-          { "id": "e1-2", "source": "1", "target": "2", "style": { "stroke": "#F97316", "strokeWidth": 2 } }
-        ]
-      }
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-      Ensure the mind map covers essential subtopics related to "${content}" and maintains a structured hierarchy with visually appealing colors.
-    `;
+    // ---- Prompt (no fixed positions, only styles) ----
+    let prompt;
+    if (user.isPro) {
+      prompt = `
+        Generate a very detailed and premium JSON mind map for: "${content.content}".
+        Include all root nodes, subtopics, and deeply nested concepts.
+        Assign unique attractive colors and styles to nodes and edges.
+        Do NOT include positions (x,y) - positions will be handled separately.
+        Return ONLY valid JSON exactly in this format:
+        {
+          "nodes": [
+            { "id": "1", "data": { "label": "${content.content}" }, 
+              "style": { "background": "#6D28D9", "color": "#fff",
+                         "border": "2px solid #4C1D95",
+                         "borderRadius": "10px", "padding": "10px" } }
+          ],
+          "edges": [
+            { "id": "e1-2", "source": "1", "target": "2",
+              "style": { "stroke": "#F97316", "strokeWidth": 2 } }
+          ]
+        }
+        Do NOT include extra text, only JSON.
+      `;
+    } else {
+      prompt = `
+        Generate a structured JSON mind map for: "${content.content}".
+        Include broad level nodes and subtopics (not deep).
+        Assign unique colors and styles to nodes and edges.
+        Do NOT include positions (x,y) - positions will be handled separately.
+        Return ONLY valid JSON exactly in this format:
+        {
+          "nodes": [
+            { "id": "1", "data": { "label": "${content.content}" }, 
+              "style": { "background": "#6D28D9", "color": "#fff",
+                         "border": "2px solid #4C1D95",
+                         "borderRadius": "10px", "padding": "10px" } }
+          ],
+          "edges": [
+            { "id": "e1-2", "source": "1", "target": "2",
+              "style": { "stroke": "#F97316", "strokeWidth": 2 } }
+          ]
+        }
+        Do NOT include extra text, only JSON.
+      `;
+    }
 
+    // ---- AI Call ----
     const mindMapResponse = await ai.models.generateContent({
       model: "gemini-2.0-flash",
       contents: prompt,
     });
 
-    let rawResponse = mindMapResponse.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-    rawResponse = rawResponse.replace(/```json\n|```/g, "").trim();
+    let rawData = mindMapResponse?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    rawData = rawData.replace(/```json|```/g, "").trim();
 
-    const mindMapData = JSON.parse(rawResponse);
+    let mindMapData;
+    try {
+      mindMapData = JSON.parse(rawData);
+    } catch (e) {
+      console.error("Invalid JSON returned by AI:", rawData);
+      return res.status(500).json({ error: "AI returned invalid JSON format" });
+    }
 
     if (!mindMapData.nodes || !mindMapData.edges) {
+      console.error("Missing nodes or edges in AI response");
       return res.status(500).json({ error: "Invalid mind map data from AI." });
     }
 
-    let user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    const cleanData = {
+      title: `Mind Map for ${content.content}`.trim(),
+      mindMaps: {
+        nodes: mindMapData.nodes,
+        edges: mindMapData.edges,
+      },
+    };
+
+    // ---- Save ----
+    user.userMindMaps.push(cleanData);
     if (!user.isPro && user.monthlymindMaps > 0) {
-      user.userMindMaps.push({
-        title: `Mind Map for ${content.content}`,
-        mindMaps: mindMapData,
-      });
       user.monthlymindMaps -= 1;
-      console.log("MindMaps Remaining ",user.monthlymindMaps)
     }
-    else if (user.isPro) {
-      user.userMindMaps.push({
-        title: `Mind Map for ${content.content}`,
-        mindMaps: mindMapData,
-      });
-    }
-    
-    
-    console.log("MindMaps Remaining ",user.monthlymindMaps)
     await user.save();
-    console.log(user);
+
+    const currentMindMap = user.userMindMaps[user.userMindMaps.length - 1];
     return res.status(200).json({
       success: true,
       message: "Mind map saved successfully",
-      mindMapData,
-      latestOne: user.userMindMaps.length - 1,
-      allMindMaps: user.userMindMaps
-
+      ...cleanData,
+      currentMindMap,
     });
 
   } catch (error) {
-    console.error("Error:", error);
+    console.error("MindMap Creating Error:", error);
     return res.status(500).json({ error: "Something went wrong!" });
   }
 });
+
+
+
+
+
 
 
 
@@ -271,6 +308,7 @@ app.get("/:userId/getChats", async (req, res) => {
     console.log("Error ", error)
   }
 });
+
 app.get("/:userId/getAllMindMaps", async (req, res) => {
   console.log("user Id ", req.params.id);
   try {
@@ -280,7 +318,7 @@ app.get("/:userId/getAllMindMaps", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({allMindMaps: user.userMindMaps});
+    res.status(200).json({ allMindMaps: user.userMindMaps });
   } catch (error) {
     res.status(500).json({ message: error.message });
     console.log("Error ", error)

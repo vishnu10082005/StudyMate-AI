@@ -204,7 +204,6 @@ export default function PricingPage() {
         return
       }
 
-      // Get API key and create order
       try {
         const {
           data: { key },

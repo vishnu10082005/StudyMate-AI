@@ -23,7 +23,6 @@ razorrouter.post("/checkout/:userId", async (req, res) => {
         planType: protype,
       },
     }
-    // We'll update the user status after successful payment verification
     const order = await instance.orders.create(options)
     res.status(200).json({ success: true, order })
   } catch (error) {
