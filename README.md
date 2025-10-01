@@ -1,2 +1,2 @@
 # StudyMate-AI
-**Cleint Link** : https://study-mateai.vercel.app
+**Client Link** : https://study-mateai.vercel.app
