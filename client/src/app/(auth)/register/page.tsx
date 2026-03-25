@@ -45,7 +45,7 @@ export default function RegisterPage() {
     const filePath = `uploads/${fileName}`
 
     const { error } = await supabase.storage
-      .from("summerize")
+      .from("StudyMate")
       .upload(filePath, file, { cacheControl: "3600", upsert: false })
 
     if (error) {
@@ -53,7 +53,7 @@ export default function RegisterPage() {
       return
     }
 
-    const { data: urlData } = supabase.storage.from("summerize").getPublicUrl(filePath)
+    const { data: urlData } = supabase.storage.from("StudyMate").getPublicUrl(filePath)
     setAvatar(urlData.publicUrl)
   }
 
@@ -74,7 +74,7 @@ export default function RegisterPage() {
     const filePath = `uploads/${fileName}`
 
     const { error } = await supabase.storage
-      .from("summerize")
+      .from("StudyMate")
       .upload(filePath, file)
 
     if (error) {
@@ -82,7 +82,7 @@ export default function RegisterPage() {
       return
     }
 
-    const { data: urlData } = supabase.storage.from("summerize").getPublicUrl(filePath)
+    const { data: urlData } = supabase.storage.from("StudyMate").getPublicUrl(filePath)
     setCoverImg(urlData.publicUrl)
   }
 
@@ -91,7 +91,7 @@ export default function RegisterPage() {
     setIsLoading(true)
   
     try {
-      const response = await axios.post("https://studymate-ai-2gvx.onrender.com/auth/register", {
+      const response = await axios.post("http://localhost:3005/auth/register", {
         userName,
         email,
         password,

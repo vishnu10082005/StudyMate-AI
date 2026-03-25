@@ -71,7 +71,7 @@ export default function UserProfilePage() {
 
       setLoadingProfile(true)
       try {
-        const response = await axios.get(`https://studymate-ai-2gvx.onrender.com/${username}/viewProfile`)
+        const response = await axios.get(`http://localhost:3005/${username}/viewProfile`)
 
         if (response.data && response.data.user) {
           const userData = response.data.user
@@ -130,7 +130,7 @@ export default function UserProfilePage() {
       const endpoint = isFollowing ? "unfollow" : "follow"
 
       // Send the current user ID as the follower
-      const response = await axios.put(`https://studymate-ai-2gvx.onrender.com/${profileUser._id}/${endpoint}`, {
+      const response = await axios.put(`http://localhost:3005/${profileUser._id}/${endpoint}`, {
         followerId: currentUserId,
       })
 

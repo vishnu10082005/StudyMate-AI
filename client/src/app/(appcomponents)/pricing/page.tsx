@@ -100,7 +100,7 @@ export default function PricingPage() {
   const fetchUser = useCallback(async () => {
     if (!userId) return
     try {
-      const response = await axios.get(`https://studymate-ai-2gvx.onrender.com/${userId}/getUser`)
+      const response = await axios.get(`http://localhost:3005/${userId}/getUser`)
       setUser(response.data.user)
     } catch (error) {
       console.error("Error fetching user:", error)
@@ -141,7 +141,7 @@ export default function PricingPage() {
       }
 
       const verificationResponse = await axios.post(
-        "https://studymate-ai-2gvx.onrender.com/paymentverification",
+        "http://localhost:3005/paymentverification",
         paymentData,
       )
       console.log("Verification data ",verificationResponse)
@@ -207,16 +207,16 @@ export default function PricingPage() {
       try {
         const {
           data: { key },
-        } = await axios.get("https://studymate-ai-2gvx.onrender.com/api/getkey")
+        } = await axios.get("http://localhost:3005/api/getkey")
 
+        console.log("This is the user Id ",userId);
         const {
           data: { order },
-        } = await axios.post(`https://studymate-ai-2gvx.onrender.com/checkout/${userId}`, {
+        } = await axios.post(`http://localhost:3005/checkout/${userId}`, {
           amount,
           protype: planType,
         })
 
-        // Configure Razorpay options
         const options = {
           key,
           amount: order.amount,

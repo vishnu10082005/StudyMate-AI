@@ -104,7 +104,7 @@ export default function EditProfileModal({ isOpen, onClose, userData, onProfileU
     const filePath = `uploads/${fileName}`
 
     const { error } = await supabase.storage
-      .from("summerize")
+      .from("StudyMate")
       .upload(filePath, file, { cacheControl: "3600", upsert: false })
 
     if (error) {
@@ -112,7 +112,7 @@ export default function EditProfileModal({ isOpen, onClose, userData, onProfileU
       return
     }
 
-    const { data: urlData } = supabase.storage.from("summerize").getPublicUrl(filePath)
+    const { data: urlData } = supabase.storage.from("StudyMate").getPublicUrl(filePath)
     setAvatar(urlData.publicUrl)
   }
 
@@ -133,7 +133,7 @@ export default function EditProfileModal({ isOpen, onClose, userData, onProfileU
     const filePath = `uploads/${fileName}`
 
     const { error } = await supabase.storage
-      .from("summerize")
+      .from("StudyMate")
       .upload(filePath, file, { cacheControl: "3600", upsert: false })
 
     if (error) {
@@ -141,7 +141,7 @@ export default function EditProfileModal({ isOpen, onClose, userData, onProfileU
       return
     }
 
-    const { data: urlData } = supabase.storage.from("summerize").getPublicUrl(filePath)
+    const { data: urlData } = supabase.storage.from("StudyMate").getPublicUrl(filePath)
     setCoverImage(urlData.publicUrl)
   }
 
@@ -160,7 +160,7 @@ export default function EditProfileModal({ isOpen, onClose, userData, onProfileU
       console.log(updateData);
 
       const response = await axios.put(
-        `https://studymate-ai-2gvx.onrender.com/${id}/editedProfile`,
+        `http://localhost:3005/${id}/editedProfile`,
         {name,
         userName,
         bio,
@@ -341,12 +341,12 @@ export default function EditProfileModal({ isOpen, onClose, userData, onProfileU
             <Button
               type="button"
               variant="outline"
-              className="border-[#323042] text-gray-300 hover:bg-[#2A2838]"
+              className="border-[#323042] text-white bg-[#252330] hover:bg-[#FFFFFF] cursor-pointer"
               onClick={onClose}
             >
               Cancel
             </Button>
-            <Button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white" disabled={isLoading}>
+            <Button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white cursor-pointer" disabled={isLoading} > 
               {isLoading ? "Saving Changes..." : "Save Changes"}
             </Button>
           </DialogFooter>

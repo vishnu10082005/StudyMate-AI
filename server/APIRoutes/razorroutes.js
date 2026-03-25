@@ -8,28 +8,51 @@ const razorrouter = express.Router()
 const instance = new razorpay({
   key_id: process.env.RAZORPAY_ID_KEY,
   key_secret: process.env.RAZORPAY_SECRET_KEY,
+
 })
+
+
 
 // checkout api
 razorrouter.post("/checkout/:userId", async (req, res) => {
-  const userId = req.params.userId
-  const protype = req.body.protype
   try {
+    const userId = req.params.userId;
+    const { amount, protype } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: "UserId missing" });
+    }
+
+    if (!amount) {
+      return res.status(400).json({ error: "Amount missing" });
+    }
+
     const options = {
-      amount: Number(req.body.amount * 100),
+      amount: Number(amount) * 100,
       currency: "INR",
       notes: {
-        userId: userId,
+        userId,
         planType: protype,
       },
-    }
-    const order = await instance.orders.create(options)
-    res.status(200).json({ success: true, order })
+    };
+
+    const order = await instance.orders.create(options);
+
+    return res.status(200).json({
+      success: true,
+      order,
+    });
+
   } catch (error) {
-    console.error("Order creation error:", error)
-    res.status(500).json({ success: false, error })
+    console.error("Order creation error:", error?.error || error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Order creation failed",
+      details: error?.error || error.message,
+    });
   }
-})
+});
 
 razorrouter.post("/paymentverification", async (req, res) => {
   try {

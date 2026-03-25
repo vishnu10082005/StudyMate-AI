@@ -80,7 +80,7 @@ export default function MindMapGenerator() {
     if (!userId) return;
     try {
       const response = await axios.get(
-        `https://studymate-ai-2gvx.onrender.com/${userId}/getUser`
+        `http://localhost:3005/${userId}/getUser`
       );
       setUser(response.data.user);
       console.log(response.data.user);
@@ -132,7 +132,7 @@ export default function MindMapGenerator() {
           return
         }
 
-        const response = await axios.get(`https://studymate-ai-2gvx.onrender.com/${userId}/getAllMindMaps`)
+        const response = await axios.get(`http://localhost:3005/${userId}/getAllMindMaps`)
         if (response.data && response.data.allMindMaps) {
           setMindMaps(response.data.allMindMaps)
         }

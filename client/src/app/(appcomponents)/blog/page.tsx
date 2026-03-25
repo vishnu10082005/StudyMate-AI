@@ -26,7 +26,7 @@ export default function BlogPage() {
     if (!userId) return;
     try {
       const response = await axios.get(
-        `https://studymate-ai-2gvx.onrender.com/${userId}/getBlogs`
+        `http://localhost:3005/${userId}/getBlogs`
       );
       setBlogs(response.data.userBlogs);
       console.log(response.data.userBlogs);

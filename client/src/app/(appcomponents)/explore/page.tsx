@@ -71,7 +71,7 @@ export default function ExplorePage() {
     if (!userId) return
     setIsLoading(true)
     try {
-      const response = await axios.get(`https://studymate-ai-2gvx.onrender.com/getAllBlogs`)
+      const response = await axios.get(`http://localhost:3005/getAllBlogs`)
       const blogs = response.data.blogs
       setAllPosts(blogs)
       const categories = blogs.reduce((acc: Record<string, number>, blog: Blog) => {

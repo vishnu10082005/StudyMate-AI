@@ -1,11 +1,12 @@
 import express from "express";
-
+import { OpenRouter } from "@openrouter/sdk";
 import cors from "cors";
 import axios from "axios";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import User from "./Schema/User.js";
+import OpenAI from "openai";
 import connectDB from "./DatabaseConnection/dbConnection.js";
 import authRoute from "./APIRoutes/authRoute.js";
 import userRouter from "./APIRoutes/userRoutes.js";
@@ -44,6 +45,7 @@ app.use(resetrouter)
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINIAI_API_KEY });
 const genAI = new GoogleGenerativeAI(process.env.GEMINIAI_API_KEY);
 
+/*
 async function imageUrlToBase64(imageUrl) {
   console.log("Image URL:", imageUrl);
   try {
@@ -54,133 +56,143 @@ async function imageUrlToBase64(imageUrl) {
     return null;
   }
 }
+*/
+
+dotenv.config();
+const openRouter = new OpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  defaultHeaders: {
+    'HTTP-Referer': 'http://localhost:3000', // Optional
+    'X-OpenRouter-Title': 'StudyMate AI',       // Optional
+  },
+});
 
 app.post("/:userId/summarize", async (req, res) => {
   try {
     const { image, content, title } = req.body;
-    const userId = req.params.userId;
+    const { userId } = req.params;
     const summaryType = req.query.summaryType || "normal";
 
+    // ✅ Basic validations
     if (!userId) {
       return res.status(400).json({ error: "User ID is required" });
     }
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!content) {
+      return res.status(400).json({ error: "Content is required." });
+    }
 
-    /* ------------------------------------------------------------------ */
-    /*  SMART‑SUMMARY CREDIT CHECK                                        */
-    /* ------------------------------------------------------------------ */
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // ✅ Credit logic
     if (summaryType === "smart" && !user.isPro) {
       if (user.smartSummaries <= 0) {
-        return res.status(403).json({
-          error:
-            "Smart‑summary limit reached. Upgrade to Pro for unlimited summaries.",
-        });
+        return res.status(403).json({ error: "Smart-summary limit reached." });
       }
       user.smartSummaries -= 1;
     }
 
-    /* ------------------------------------------------------------------ */
-    /*  SYSTEM RULE: polite greeting                                      */
-    /* ------------------------------------------------------------------ */
+    // ✅ Prompt
     const systemRule =
-      "RULE: If the user message is **only** a greeting " +
-      "(hi, hello, hey, good morning, good evening, namaste, etc.), " +
-      'reply exactly with: "Welcome to StudyMate AI! How can I help you today?" ' +
-      "in a friendly, humble tone. Otherwise ignore this rule and follow the " +
-      "additional instructions below.\n\n";
+      "If user greets only greets (hi/hello),then reply: 'Welcome to StudyMate AI! How can I help you today?'.else dont wish Otherwise, generate the requested summary.";
 
-    let summaryText = "";
-    let chatMessages = [];
-    if (content && !image) {
-      const prompt =
-        systemRule +
-        (summaryType === "smart"
-          ? `${content}\nSummarize with deep understanding, highlighting key insights, emotions and concepts. Use bullet format with newline (\\n) after each point. Do **not** use markdown/bold (**).`
-          : `${content}\nSummarize in one paragraph, each point separated by newline (\\n). Do **not** use markdown/bold (**).`);
+    const fullPrompt = `
+${systemRule}
 
-      const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: prompt,
-      });
+Task: ${summaryType === "smart"
+        ? `You are an expert assistant.
+Your goal is to make the user understand everything deeply, even if they are a beginner.
+Always follow this structure:
+Explain the concept in simple and clear terms.
+Key Points
 
-      summaryText =
-        response.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "Failed to generate summary";
-    }
-    else if (image) {
-      const base64Image = await imageUrlToBase64(image);
-      if (!base64Image)
-        return res.status(500).json({ error: "Failed to convert image." });
+`
+        : `You are a helpful assistant.
+Your goal is to answer user queries clearly and simply.
+`
+      }
 
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+Content:
+${content}
+`;
 
-      const serverPrompt =
-        systemRule +
-        (summaryType === "smart"
-          ? "Smartly summarise this image: deep insights, context and highlights. Each point newline‑separated (\\n). No markdown/bold."
-          : "Summarise this image in simple newline‑separated points (\\n). No markdown/bold.");
+    // ✅ NVIDIA API call
+    const response = await axios.post(
+      "https://integrate.api.nvidia.com/v1/chat/completions",
+      {
+        model: "qwen/qwen3.5-122b-a10b",
+        messages: [
+          {
+            role: "user",
+            content: fullPrompt,
+          },
+        ],
+        max_tokens: 1024,
+        temperature: 0.6,
+        top_p: 0.95,
+        stream: false,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`,
+          Accept: "application/json",
+        },
+        timeout: 20000, // ✅ prevents hanging
+      }
+    );
 
-      const imagePart = {
-        inlineData: { data: base64Image, mimeType: "image/jpeg" },
-      };
+    const summaryText =
+      response.data?.choices?.[0]?.message?.content || "No response";
 
-      const generated = await model.generateContent([serverPrompt, imagePart]);
-      summaryText = generated.response.text() || "Failed to generate summary";
-    }
-
-    else {
-      return res
-        .status(400)
-        .json({ error: "Please provide either an image or content." });
-    }
-    chatMessages.push({ role: "user", content: content || "", image: image || "" });
-    chatMessages.push({ role: "bot", content: summaryText });
-
-    let generatedTitle = title;
-    if (title === "New Chat") {
-      const titlePrompt =
-        systemRule +
-        `Generate a short (3‑4 word) plain‑text title relevant to: ${summaryText}`;
-      const titleResponse = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: titlePrompt,
-      });
-      generatedTitle =
-        titleResponse.candidates?.[0]?.content?.parts?.[0]?.text.trim() ||
-        "Untitled Chat";
-    }
+    // ✅ Save chat history
+    const chatMessages = [
+      { role: "user", content },
+      { role: "bot", content: summaryText },
+    ];
 
     const existingChat = user.userChats.find((c) => c.title === title);
+
     if (existingChat) {
       existingChat.messages.push(...chatMessages);
     } else {
-      user.userChats.push({ title: generatedTitle, messages: chatMessages });
+      user.userChats.push({
+        title: title || "New Summary",
+        messages: chatMessages,
+      });
     }
 
     await user.save();
 
+    // ✅ Final response
     return res.json({
       user,
-      chatTitle: generatedTitle,
+      chatTitle: title || "New Summary",
       ResponseText: summaryText,
     });
   } catch (err) {
-    console.error("summarize route error:", err);
-    res.status(500).json({ error: "Something went wrong!" });
+    console.error("Summarize error:", err?.response?.data || err.message);
+
+    return res.status(500).json({
+      error: "AI Service Error",
+      details: err?.response?.data || err.message,
+    });
   }
 });
 
-
+const openai = new OpenAI({
+  apiKey: process.env.NVIDIA_API_KEY,
+  baseURL: "https://integrate.api.nvidia.com/v1",
+});
 
 
 app.post("/:userId/mindMap", async (req, res) => {
   try {
-    const content = req.body;
-    console.log("Request Body:", content);
+    const { content } = req.body;
+    const { userId } = req.params;
 
-    const userId = req.params.userId;
     if (!content || !userId) {
       return res.status(400).json({ error: "User ID and content are required" });
     }
@@ -188,108 +200,173 @@ app.post("/:userId/mindMap", async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    // ---- Prompt (no fixed positions, only styles) ----
-    let prompt;
-    if (user.isPro) {
-      prompt = `
-        Generate a very detailed and premium JSON mind map for: "${content.content}".
-        Include all root nodes, subtopics, and deeply nested concepts.
-        Assign unique attractive colors and styles to nodes and edges.
-        Do NOT include positions (x,y) - positions will be handled separately.
-        Return ONLY valid JSON exactly in this format:
-        {
-          "nodes": [
-            { "id": "1", "data": { "label": "${content.content}" }, 
-              "style": { "background": "#6D28D9", "color": "#fff",
-                         "border": "2px solid #4C1D95",
-                         "borderRadius": "10px", "padding": "10px" } }
-          ],
-          "edges": [
-            { "id": "e1-2", "source": "1", "target": "2",
-              "style": { "stroke": "#F97316", "strokeWidth": 2 } }
-          ]
-        }
-        Do NOT include extra text, only JSON.
-      `;
-    } else {
-      prompt = `
-        Generate a structured JSON mind map for: "${content.content}".
-        Include broad level nodes and subtopics (not deep).
-        Assign unique colors and styles to nodes and edges.
-        Do NOT include positions (x,y) - positions will be handled separately.
-        Return ONLY valid JSON exactly in this format:
-        {
-          "nodes": [
-            { "id": "1", "data": { "label": "${content.content}" }, 
-              "style": { "background": "#6D28D9", "color": "#fff",
-                         "border": "2px solid #4C1D95",
-                         "borderRadius": "10px", "padding": "10px" } }
-          ],
-          "edges": [
-            { "id": "e1-2", "source": "1", "target": "2",
-              "style": { "stroke": "#F97316", "strokeWidth": 2 } }
-          ]
-        }
-        Do NOT include extra text, only JSON.
-      `;
-    }
+    const maxNodes = user.isPro ? 5 : 3;
 
-    // ---- AI Call ----
-    const mindMapResponse = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: prompt,
+    // 🔥 Strong prompt (prevents junk)
+    const prompt = `
+DO NOT include thinking, reasoning, or explanations.
+DO NOT include <think> tags.
+DO NOT include markdown.
+ONLY return valid JSON.
+
+Rules:
+- Maximum ${maxNodes} nodes total (including root)
+- Keep it simple
+- Root node id must be "1"
+
+Return format:
+{
+  "nodes": [
+    {
+      "id": "1",
+      "data": { "label": "${content}" },
+      "style": {
+        "background": "#6D28D9",
+        "color": "#fff",
+        "border": "2px solid #4C1D95",
+        "borderRadius": "10px",
+        "padding": "10px"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1-2",
+      "source": "1",
+      "target": "2",
+      "style": { "stroke": "#F97316", "strokeWidth": 2 }
+    }
+  ]
+}
+`;
+
+    // ✅ API call
+    const completion = await openai.chat.completions.create({
+      model: "minimaxai/minimax-m2.5",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.3,
+      max_tokens: 800,
     });
 
-    let rawData = mindMapResponse?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-    rawData = rawData.replace(/```json|```/g, "").trim();
+    let rawData = completion.choices?.[0]?.message?.content || "";
 
+    // =========================
+    // 🔥 CLEAN RESPONSE
+    // =========================
+    rawData = rawData
+      .replace(/<think>[\s\S]*?<\/think>/g, "")
+      .replace(/```json|```/g, "")
+      .trim();
+
+    // =========================
+    // 🔥 EXTRACT JSON ONLY
+    // =========================
+    const jsonMatch = rawData.match(/\{[\s\S]*\}/);
+
+    if (!jsonMatch) {
+      return res.status(500).json({
+        error: "No JSON found in response",
+        raw: rawData,
+      });
+    }
+
+    let cleanJson = jsonMatch[0];
+
+    // =========================
+    // 🔥 PARSE + REPAIR
+    // =========================
     let mindMapData;
+
     try {
-      mindMapData = JSON.parse(rawData);
-    } catch (e) {
-      console.error("Invalid JSON returned by AI:", rawData);
-      return res.status(500).json({ error: "AI returned invalid JSON format" });
+      mindMapData = JSON.parse(cleanJson);
+    } catch (err) {
+      console.warn("Parse failed → repairing JSON");
+
+      try {
+        cleanJson = cleanJson
+          .replace(/,\s*}/g, "}")
+          .replace(/,\s*]/g, "]")
+          .replace(/"strokeWidth":\s*$/g, '"strokeWidth": 2');
+
+        mindMapData = JSON.parse(cleanJson);
+      } catch (repairErr) {
+        console.error("Repair failed → fallback used");
+
+        // 🔥 FINAL FALLBACK (never break UI)
+        mindMapData = {
+          nodes: [
+            {
+              id: "1",
+              data: { label: content },
+              style: {
+                background: "#6D28D9",
+                color: "#fff",
+                border: "2px solid #4C1D95",
+                borderRadius: "10px",
+                padding: "10px",
+              },
+            },
+          ],
+          edges: [],
+        };
+      }
     }
 
+    // =========================
+    // 🔥 VALIDATION
+    // =========================
     if (!mindMapData.nodes || !mindMapData.edges) {
-      console.error("Missing nodes or edges in AI response");
-      return res.status(500).json({ error: "Invalid mind map data from AI." });
+      return res.status(500).json({
+        error: "Invalid structure from AI",
+      });
     }
 
+    // =========================
+    // 🔥 ENFORCE LIMIT
+    // =========================
+    mindMapData.nodes = mindMapData.nodes.slice(0, maxNodes);
+
+    const allowedIds = new Set(mindMapData.nodes.map((n) => n.id));
+
+    mindMapData.edges = mindMapData.edges.filter(
+      (e) => allowedIds.has(e.source) && allowedIds.has(e.target)
+    );
+
+    // =========================
+    // ✅ SAVE
+    // =========================
     const cleanData = {
-      title: `Mind Map for ${content.content}`.trim(),
-      mindMaps: {
-        nodes: mindMapData.nodes,
-        edges: mindMapData.edges,
-      },
+      title: `Mind Map for ${content}`,
+      mindMaps: mindMapData,
     };
 
-    // ---- Save ----
     user.userMindMaps.push(cleanData);
+
     if (!user.isPro && user.monthlymindMaps > 0) {
       user.monthlymindMaps -= 1;
     }
+
     await user.save();
 
-    const currentMindMap = user.userMindMaps[user.userMindMaps.length - 1];
+    const currentMindMap =
+      user.userMindMaps[user.userMindMaps.length - 1];
+
     return res.status(200).json({
       success: true,
-      message: "Mind map saved successfully",
+      message: "Mind map created",
       ...cleanData,
       currentMindMap,
     });
 
   } catch (error) {
-    console.error("MindMap Creating Error:", error);
-    return res.status(500).json({ error: "Something went wrong!" });
+    console.error("MindMap Error:", error?.message);
+
+    return res.status(500).json({
+      error: "Something went wrong",
+      details: error?.message,
+    });
   }
 });
-
-
-
-
-
-
 
 
 // Route to get all chats of a user

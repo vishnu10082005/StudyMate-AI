@@ -73,7 +73,7 @@ export default function ProfilePage() {
     if (!userId) return;
     try {
       const response = await axios.get(
-        `https://studymate-ai-2gvx.onrender.com/${userId}/getUser`
+        `http://localhost:3005/${userId}/getUser`
       );
       setUser(response.data.user);
       console.log(response.data.user);

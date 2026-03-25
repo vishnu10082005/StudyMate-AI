@@ -57,7 +57,7 @@ export default function DashboardPage() {
           throw new Error("User ID not found")
         }
 
-        const response = await fetch(`https://studymate-ai-2gvx.onrender.com/${userId}/getUser`)
+        const response = await fetch(`http://localhost:3005/${userId}/getUser`)
         const data = await response.json()
 
         if (data.user) {

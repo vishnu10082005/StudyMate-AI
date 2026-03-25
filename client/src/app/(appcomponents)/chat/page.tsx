@@ -33,6 +33,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { motion, AnimatePresence } from "framer-motion"
+import AiResponse from "@/components/ui/ai_response"
 
 type Message = {
   role: "user" | "bot"
@@ -61,19 +62,21 @@ export default function ChatPage() {
   const [smartSummaryCount, setSmartSummaryCount] = useState(5)
   const [isPro, setIsPro] = useState(false)
   const [summaryType, setSummaryType] = useState<"normal" | "smart">("normal")
+  const [streamingMessageIndex, setStreamingMessageIndex] = useState<number | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [userName, setUserName] = useState("")
   const [userAvatar, setUserAvatar] = useState("")
   const router = useRouter();
   useEffect(() => {
-    const storedUserId = localStorage.getItem("userId")
+    const storedUserId = localStorage.getItem("userId");
+    console.log("This is the userid ",storedUserId);
     setUserId(storedUserId)
   }, [])
 
   const fetchUserData = useCallback(async () => {
     if (!userId) return
     try {
-      const response = await axios.get(`https://studymate-ai-2gvx.onrender.com/${userId}/getUser`)
+      const response = await axios.get(`http://localhost:3005/${userId}/getUser`)
       setSmartSummaryCount(response.data.user.smartSummaries || 0)
       setIsPro(response.data.user.isPro || false)
       setUserName(response.data.user.userName || "User")
@@ -87,7 +90,7 @@ export default function ChatPage() {
   const fetchChats = useCallback(async () => {
     if (!userId) return
     try {
-      const response = await axios.get(`https://studymate-ai-2gvx.onrender.com/${userId}/getChats`)
+      const response = await axios.get(`http://localhost:3005/${userId}/getChats`)
       setChats(response.data)
     } catch (error) {
       console.error("Error fetching chats:", error)
@@ -168,7 +171,7 @@ export default function ChatPage() {
 
     try {
       const response = await axios.post(
-        `https://studymate-ai-2gvx.onrender.com/${userId}/summarize?summaryType=${summaryType}`,
+        `http://localhost:3005/${userId}/summarize?summaryType=${summaryType}`,
         {
           title: currentTitle,
           content: newMessage.content,
@@ -188,6 +191,13 @@ export default function ChatPage() {
       }
 
       setMessages((prevMessages) => [...prevMessages, aiMessage])
+      
+      // Set the new message as streaming (it will be the last one added)
+      setMessages((prevMessages) => {
+        setStreamingMessageIndex(prevMessages.length - 1)
+        return prevMessages
+      })
+      
       setCurrentTitle(response.data.chatTitle)
 
       // Refresh chats to get updated list
@@ -543,17 +553,11 @@ export default function ChatPage() {
                         )}
 
                         {message.role === "bot" ? (
-                          <div className="prose prose-invert max-w-none">
-                            <ul className="list-disc pl-5 space-y-1">
-                              {message.content
-                                ?.trim()
-                                .split("\\n")
-                                .filter((line) => line.trim())
-                                .map((line, idx) => (
-                                  <li key={idx}>{line}</li>
-                                ))}
-                            </ul>
-                          </div>
+                          <AiResponse 
+                            content={message.content || ""}
+                            isStreaming={streamingMessageIndex === index}
+                            streamingSpeed={25}
+                          />
                         ) : (
                           <p className="whitespace-pre-wrap">{message.content}</p>
                         )}
