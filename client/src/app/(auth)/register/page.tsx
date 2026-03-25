@@ -91,7 +91,7 @@ export default function RegisterPage() {
     setIsLoading(true)
   
     try {
-      const response = await axios.post("http://localhost:3005/auth/register", {
+      const response = await axios.post("https://studymate-ai-server.vercel.app/auth/register", {
         userName,
         email,
         password,

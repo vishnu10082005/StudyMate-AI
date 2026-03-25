@@ -20,7 +20,8 @@ const app = express();
 const port = 3005;
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://study-mateai.vercel.app'
+  'https://study-mateai.vercel.app',
+  'https://study-mateai-phi.vercel.app'
 ];
 
 app.use(cors({

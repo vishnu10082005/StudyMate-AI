@@ -57,7 +57,7 @@ export default function DashboardPage() {
           throw new Error("User ID not found")
         }
 
-        const response = await fetch(`http://localhost:3005/${userId}/getUser`)
+        const response = await fetch(`https://studymate-ai-server.vercel.app/${userId}/getUser`)
         const data = await response.json()
 
         if (data.user) {

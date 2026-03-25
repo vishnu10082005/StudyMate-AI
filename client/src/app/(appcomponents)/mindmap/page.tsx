@@ -80,7 +80,7 @@ export default function MindMapGenerator() {
     if (!userId) return;
     try {
       const response = await axios.get(
-        `http://localhost:3005/${userId}/getUser`
+        `https://studymate-ai-server.vercel.app/${userId}/getUser`
       );
       setUser(response.data.user);
       console.log(response.data.user);
@@ -132,7 +132,7 @@ export default function MindMapGenerator() {
           return
         }
 
-        const response = await axios.get(`http://localhost:3005/${userId}/getAllMindMaps`)
+        const response = await axios.get(`https://studymate-ai-server.vercel.app/${userId}/getAllMindMaps`)
         if (response.data && response.data.allMindMaps) {
           setMindMaps(response.data.allMindMaps)
         }
@@ -167,7 +167,7 @@ export default function MindMapGenerator() {
         throw new Error("User ID not found. Please log in again.")
       }
 
-      const response = await axios.post(`http://localhost:3005/${userId}/mindMap`, {
+      const response = await axios.post(`https://studymate-ai-server.vercel.app/${userId}/mindMap`, {
         content: content,
         title: title.trim() || content.trim(),
       })

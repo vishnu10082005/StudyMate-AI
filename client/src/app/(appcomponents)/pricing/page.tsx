@@ -100,7 +100,7 @@ export default function PricingPage() {
   const fetchUser = useCallback(async () => {
     if (!userId) return
     try {
-      const response = await axios.get(`http://localhost:3005/${userId}/getUser`)
+      const response = await axios.get(`https://studymate-ai-server.vercel.app/${userId}/getUser`)
       setUser(response.data.user)
     } catch (error) {
       console.error("Error fetching user:", error)
@@ -141,7 +141,7 @@ export default function PricingPage() {
       }
 
       const verificationResponse = await axios.post(
-        "http://localhost:3005/paymentverification",
+        "https://studymate-ai-server.vercel.app/paymentverification",
         paymentData,
       )
       console.log("Verification data ",verificationResponse)
@@ -207,12 +207,12 @@ export default function PricingPage() {
       try {
         const {
           data: { key },
-        } = await axios.get("http://localhost:3005/api/getkey")
+        } = await axios.get("https://studymate-ai-server.vercel.app/api/getkey")
 
         console.log("This is the user Id ",userId);
         const {
           data: { order },
-        } = await axios.post(`http://localhost:3005/checkout/${userId}`, {
+        } = await axios.post(`https://studymate-ai-server.vercel.app/checkout/${userId}`, {
           amount,
           protype: planType,
         })
